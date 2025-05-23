@@ -1,0 +1,6 @@
+site_name: fmt-doc
+nav:
+  - Home: index.md
+
+# Documentation source files directory
+docs_dir: docs
