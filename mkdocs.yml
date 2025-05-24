@@ -1,5 +1,5 @@
 site_name: fmt-doc
-site_url: https://example.com
+site_url: https://doc.fmt.yb.run
 repo_name: fmt-doc
 repo_url: https://github.com/fmt-saas/fmt-doc
 edit_uri: ""
@@ -33,6 +33,8 @@ nav:
       - 'Organisation des documents':
           - 'Organisation des documents': documents/organisation-des-documents/organisation-des-documents.md
           - 'Types de documents': documents/organisation-des-documents/types-de-documents.md
+          - 'Factures d''achat': documents/organisation-des-documents/purchase-invoice-schema.md
+          - 'Extraits bancaires': documents/organisation-des-documents/bank-statement-schema.md
       - 'Document Processing':
           - 'Document Processing': documents/document-processing/document-processing.md
           - 'Document Analysis': documents/document-processing/document-analysis.md
