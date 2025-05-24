@@ -85,3 +85,97 @@ Une `AccountingEntry` suit un cycle de validation et possède les statuts suivan
 | Validée (définitive)              | `validated` | false     | false          | ✅               | ❌                      |
 | Validée temporaire                | `validated` | true      | false          | ✅               | ✅ (si période ouverte) |
 | Annulée (via extourne)            | `validated` | false     | true           | ✅ (neutralisée) | ❌                      |
+
+
+
+### Factures de ventes
+
+En principe, une **ACP** n'a pas de vocation lucrative et n’émet donc pas de factures. Cependant, dans certains cas, une copropriété peut être amenée à facturer, notamment :
+
+- **En cas de location d’un bien ou d’un équipement** appartenant à la copropriété.
+- **Lors du partage de frais entre plusieurs copropriétés**, par exemple lorsqu’une **chaudière commune** est utilisée par plusieurs ACP (même avec des syndics distincts) et qu’une seule d’entre elles reçoit la facture du fournisseur.
+
+Par ailleurs, les **appels de fonds** et les décomptes propriétaires sont considérés (et traités) comme des "factures de vente".
+
+
+
+### Factures d'achat (fournisseurs)
+
+Par convention, il y a toujours un compte comptable par fournisseur (assignés sur base de l'ID du fournisseur - issu de la DB centralisée).
+
+Après import (document digestor), une tentative d'assignation automatique est déclenchée, afin de lier pièce avec le compte comptable du fournisseur correspondant. En cas d'échec, l'assignation doit être réalisée manuellement (débit du compte fournisseur).
+
+
+
+Un système de "**lettrage**" permet d'assister le syndic dans la réconciliation des factures d'achat (facture, note de crédit) avec une imputation correspondante (paiement par banque ou via fonds de réserve).
+
+Un code couleur (vert, jaune, rouge) renseigne sur le fait qu'une pièce comptable a pu ou non être réconciliée.
+
+
+
+Les **factures fournisseurs** (qui incluent les factures et notes de crédit fournisseur, ainsi que les notes de frais du Syndic) sont toujours validées avant d'être encodées (écritures comptables).
+
+
+
+* numérotation des factures d'achat (utilisation d'une référence interne unique, pour le commissaire aux comptes)
+  * valeurs supportées dans le format: ```{year}, {period}, {sequence}```
+  * séquence par période (défaut) ou à l'année (is fréquence = A)
+
+
+
+
+
+### Notes de crédit
+
+Des notes de crédit peuvent être émise de manière interne pour annuler des écritures qui doivent être corrigées.
+
+Dans le cas où un copropriétaire demande l'annulation (complète ou partielle) d'une facture, la création de la note de crédit correspondante se fait en plusieurs étapes : 
+
+1) **Formulaire de demande** (`RefundRequest`) :  
+   - À transmettre au manager pour validation.  
+
+   - Informations obligatoires:  
+     - Facture concernée.  
+     - Montant total ou partiel.  
+
+2) **Validation et imputation** :  
+   - Si le manager valide, la note de crédit est créée et imputée automatiquement (symétrique à la facture initiale).  
+
+Une **note de crédit** ne peut pas être validée si elle ne se rapporte pas à une facture (par exemple qui n'avait pas été encodée car contestée).
+
+**Rectification de l'imputation d'une facture**:
+
+Une fois qu'une facture fournisseur est encodée elle est validée et ne peut plus être modifiée. Une action est disponible pour "**déverrouiller**" une facture : dans cas des OD sont générées pour annuler les écritures d'encodage.
+
+Il est par contre possible de modifier certaines infos sans déverrouiller la facture:
+
+- le fournisseur / l'imputation au compte comptable (à condition qu'il reste en classe 6)
+- la clé de répartition
+- la répartition PROP/LOC
+
+En cas de changement (de manière atomique), un log permet de retrouver le changement + écran pour récap le suivi (@voir Tasks).
+
+
+
+### Notes de frais
+
+Dans le cas des **notes de frais**, la contrepartie est le gestionnaire (exemple: utilisation du compte "6" pour les frais d'AG), et lesécritures comptables sont enregistrés dans le journal des achats (ACH).
+
+
+
+### Opérations diverses (OD)
+
+Il est possible de créer manuellement et à tout moment, des écritures comptables d'OD (Opérations Diverses).
+
+* ouverture comptable de l'immeuble (OD de reprise comptable)
+  * seul moment où on autorise à encoder dans le compte bancaire
+* modification de stock par rapport à quelque chose qui a été acheté sur un exercice clôturé
+* clôture d'un compte sinistre (déduction de la franchise et pertes indirectes, mais qui ne tombe pas juste)
+* transfert entre fonds de réserve (fonds trop perçu par rapport à la dépense finale)
+* apurer le compte d'attente
+
+
+Lorsqu'on utilise un compte de charge, la clé de répartition est automatiquement complétée (mais peut être modifiée manuellement), et les infos de période doivent toujours être précisées.
+
+
+

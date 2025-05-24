@@ -15,6 +15,7 @@ nav:
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
+      - 'Factures d''achat': comptabilite/encodage-facture-achat/encodage-facture-achat.md
   - 'Copropriété':
       - 'Création d''une nouvelle Copropriété (import)': copropriete/creation-dune-nouvelle-copropriete-import.md
       - 'Fournisseur (`Supplier`)': copropriete/fournisseur-supplier.md
@@ -23,9 +24,9 @@ nav:
       - 'Propriétaires (`Ownership`)': copropriete/proprietaires-ownership.md
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
   - 'Documents':
+      - 'Organisation des documents': documents/organisation-des-documents.md
       - 'Document Processing': documents/document-processing.md
       - 'Email Digestor': documents/email-digestor.md
-      - 'Organisation des documents': documents/organisation-des-documents.md
       - 'Encodage facture achat':
           - 'Découpage de la facture en lignes d’imputation (`InvoiceLine`)': documents/encodage-facture-achat/decoupage-de-la-facture-en-lignes-dimputation.md
           - 'Décompte copropriétaires ("répartition")': documents/encodage-facture-achat/decompte-coproprietaires.md

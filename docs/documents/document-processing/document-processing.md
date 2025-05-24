@@ -18,6 +18,8 @@ Ce fonctionnement repose principalement sur les entités `Document`, `DocumentPr
 | 7     | Confirmation   | Approbation finale (direction, juridique, etc.)          | ❌           |
 | 8     | Intégration    | Document intégré dans les processus opérationnels        | ✅           |
 
+
+
 ### Entités principales
 
 #### `Document`
