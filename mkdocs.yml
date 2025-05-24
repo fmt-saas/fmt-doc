@@ -29,7 +29,6 @@ nav:
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
   - 'Documents':
       - 'Aperçu': documents/documents.md
-      - 'Bank Statement Schema': documents/bank-statement-schema.md
       - 'Organisation des documents':
           - 'Organisation des documents': documents/organisation-des-documents/organisation-des-documents.md
           - 'Types de documents': documents/organisation-des-documents/types-de-documents.md
