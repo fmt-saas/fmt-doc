@@ -27,6 +27,7 @@ nav:
       - 'Organisation des documents': documents/organisation-des-documents.md
       - 'Document Processing': documents/document-processing.md
       - 'Email Digestor': documents/email-digestor.md
+      - 'Bank Statement Schema': documents/bank-statement-schema.md
       - 'Encodage facture achat':
           - 'Découpage de la facture en lignes d’imputation (`InvoiceLine`)': documents/encodage-facture-achat/decoupage-de-la-facture-en-lignes-dimputation.md
           - 'Décompte copropriétaires ("répartition")': documents/encodage-facture-achat/decompte-coproprietaires.md
