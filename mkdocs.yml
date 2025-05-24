@@ -15,33 +15,35 @@ nav:
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
-      - 'Factures d''achat': comptabilite/encodage-facture-achat/encodage-facture-achat.md
+      - 'Encodage facture achat':
+          - 'Encodage facture achat': comptabilite/encodage-facture-achat/encodage-facture-achat.md
+          - 'Décompte copropriétaires': comptabilite/encodage-facture-achat/decompte-coproprietaires.md
+          - 'Ecritures comptables': comptabilite/encodage-facture-achat/ecritures-comptables.md
+          - 'Réconciliation CODA': comptabilite/encodage-facture-achat/reconciliation-coda.md
   - 'Copropriété':
-      - 'Création d''une nouvelle Copropriété (import)': copropriete/creation-dune-nouvelle-copropriete-import.md
+      - 'Création nouvelle Copropriété': copropriete/creation-nouvelle-copropriete.md
       - 'Fournisseur (`Supplier`)': copropriete/fournisseur-supplier.md
       - 'Gestion des charges communes': copropriete/gestion-des-charges-communes.md
       - 'Gestion des consommations (eau/gaz/élec)': copropriete/gestion-des-consommations-eau-gaz-elec.md
       - 'Propriétaires (`Ownership`)': copropriete/proprietaires-ownership.md
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
   - 'Documents':
-      - 'Organisation des documents': documents/organisation-des-documents.md
-      - 'Document Processing': documents/document-processing.md
-      - 'Email Digestor': documents/email-digestor.md
+      - 'Aperçu': documents/documents.md
       - 'Bank Statement Schema': documents/bank-statement-schema.md
-      - 'Encodage facture achat':
-          - 'Découpage de la facture en lignes d’imputation (`InvoiceLine`)': documents/encodage-facture-achat/decoupage-de-la-facture-en-lignes-dimputation.md
-          - 'Décompte copropriétaires ("répartition")': documents/encodage-facture-achat/decompte-coproprietaires.md
-          - 'Ecritures de clôture de période': documents/encodage-facture-achat/ecritures-de-cloture-de-periode.md
-          - 'Génération des écritures comptables': documents/encodage-facture-achat/generation-des-ecritures-comptables.md
-          - 'Informations à renseigner': documents/encodage-facture-achat/informations-a-renseigner.md
-          - 'Paiement': documents/encodage-facture-achat/paiement.md
-          - 'Réconciliation CODA': documents/encodage-facture-achat/reconciliation-coda.md
-          - 'workflow': documents/encodage-facture-achat/workflow.md
+      - 'Organisation des documents':
+          - 'Organisation des documents': documents/organisation-des-documents/organisation-des-documents.md
+          - 'Types de documents': documents/organisation-des-documents/types-de-documents.md
+      - 'Document Processing':
+          - 'Document Processing': documents/document-processing/document-processing.md
+          - 'Document Analysis': documents/document-processing/document-analysis.md
+          - 'Document Identification': documents/document-processing/document-identification.md
+          - 'Document Validation': documents/document-processing/document-validation.md
+      - 'Email Digestor': documents/email-digestor/email-digestor.md
   - 'Suivis':
-      - 'Envois & Rappels': suivis/envois-et-rappels.md
-      - 'Réconciliation CODA': suivis/reconciliation-coda.md
-      - 'Suivis de dossiers': suivis/suivis-de-dossiers.md
-      - 'Suivis de paiement': suivis/suivis-de-paiement.md
+      - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
+      - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
+      - 'Suivis de dossiers': suivis/suivis-de-dossiers/suivis-de-dossiers.md
+      - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
 
 theme:
   name: material
