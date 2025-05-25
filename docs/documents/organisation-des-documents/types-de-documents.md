@@ -27,11 +27,11 @@
 
 Certains documents nécessitent la présence d'un sous-type de document pour pouvoir identifier la manière de (RecordingRule) et de la labeliser (LabelingRule)
 
-| `document_type` | document_subtype     | Description                         |
-| --------------- | -------------------- | ----------------------------------- |
-| `invoice`       |                      |                                     |
-|                 | `advance_invoice`    | Factures d'acompte                  |
-|                 | `adjustment_invoice` | Factures de régularisation          |
-|                 | `off_contract`       | Factures de prestation hors-contrat |
-| `credit_note`   |                      |                                     |
+| `document_type`  | document_subtype     | Description                         |
+| ---------------- | -------------------- | ----------------------------------- |
+| `invoice`        |                      | factures et notes de crédit         |
+|                  | `advance_invoice`    | Factures d'acompte                  |
+|                  | `adjustment_invoice` | Factures de régularisation          |
+|                  | `off_contract`       | Factures de prestation hors-contrat |
+| `bank-statement` |                      |                                     |
 

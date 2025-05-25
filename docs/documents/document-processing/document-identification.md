@@ -1,8 +1,24 @@
-### Documents Identification
+## Documents Identification
+
+### Types & sous-types de documents
+L'étape d'identification consiste à retrouver le `DocumentType` et `DocumentSubtype` du codument, sur base de son content-type et des informations qu'il contient.
+
+La liste des [types et sous-types est reprise dans la partie organisation des documents](/documents/organisation-des-documents/types-de-documents/).
 
 
 
-#### Traitements possibles
+### Origines des pièces
+
+| Origine        | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| **`upload`**   | Ajout manuel d’un document via l’interface par un utilisateur (par exemple, un scan, ou une importation de dossier externe) |
+| **`email`**    | Document reçu par email via ton module de récupération (avec lien possible vers le mail source) |
+| **`internal`** | Document généré par l'application elle-même (ex. facture créée depuis un module de gestion, PV généré automatiquement, etc.) |
+| **`api`**      | Document reçu depuis une API externe (par exemple plateforme de relevé de compteurs) |
+
+
+
+### Traitements possibles
 
 | Type de document               | Description / Objectif                                       | Exemples                                            | Traitement attendu                                           |
 | ------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------------------ |
@@ -22,13 +38,4 @@
 | **Conditions générales**       | CGV ou annexes contractuelles                                | PDF “Conditions générales”                          | 🔘 Facultatif : archivage ou suppression si non pertinent     |
 
 
-
-#### Origines des pièces
-
-| Origine        | Description                                                  |
-| -------------- | ------------------------------------------------------------ |
-| **`upload`**   | Ajout manuel d’un document via l’interface par un utilisateur (par exemple, un scan, ou une importation de dossier externe) |
-| **`email`**    | Document reçu par email via ton module de récupération (avec lien possible vers le mail source) |
-| **`internal`** | Document généré par l'application elle-même (ex. facture créée depuis un module de gestion, PV généré automatiquement, etc.) |
-| **`api`**      | Document reçu depuis une API externe (par exemple plateforme de relevé de compteurs) |
 

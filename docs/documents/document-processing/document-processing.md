@@ -1,22 +1,30 @@
 ## Document Processing
 
-Le processus d'importation d'un document dans FMT suit un flux complet allant du téléversement (**upload**), en passant par l'**analyse**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
+Le processus d'importation d'un document dans FMT suit un flux complet allant du téléversement (**upload**), en passant par la **complétude**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
 
 Ce fonctionnement repose principalement sur les entités `Document`, `DocumentProcess` et `DocumentType`, avec le support de services modulaires de validation et de transformation.
 
 
 ### Étapes du workflow
 
-| Étape | Nom            | Description                                              | Automatisée |
-| ----- | -------------- | -------------------------------------------------------- | ----------- |
-| 1     | Upload         | Téléversement via `widgetUpload` avec déclenchement auto | ✅           |
-| 2     | Analyse        | Reconnaissance du format, OCR / parsing si applicable    | ✅           |
-| 3     | Résolution     | Association aux entités connues (ex : fournisseur)       | ✅           |
-| 4     | Complétion     | Enrichissement manuel ou automatique des champs requis   | ❌           |
-| 5     | Validation     | Contrôle métier par un gestionnaire                      | ❌           |
-| 6     | Enregistrement | Génération d’écritures comptables en brouillon           | ✅           |
-| 7     | Confirmation   | Approbation finale (direction, juridique, etc.)          | ❌           |
-| 8     | Intégration    | Document intégré dans les processus opérationnels        | ✅           |
+| Étape | Nom            | Description                                                  | Automatisable |
+| ----- | -------------- | ------------------------------------------------------------ | ------------- |
+| 1     | `Upload`       | Téléversement via `widgetUpload` avec déclenchement auto, récupération d métadonnées | ❌             |
+| 2     | `Completion`   | Enrichissement manuel ou automatique des champs requis       | ✅             |
+| 3     | `Validation`   | Contrôle métier par un gestionnaire                          | ✅             |
+| 4     | `Recording`    | Génération d’écritures comptables en brouillon               | ✅             |
+| 5     | `Confirmation` | Approbation finale (direction, juridique, etc.)              | ❌             |
+| 6     | `Intégration`  | Document intégré dans les processus opérationnels            | ✅             |
+
+
+
+L'étape **`Completion`** se décompte en 3 parties:
+
+| Étape            | Objectif principal                                           |
+| ---------------- | ------------------------------------------------------------ |
+| `identification` | Déterminer la **nature fonctionnelle** du document (type/subtype) |
+| `extraction`     | Extraire les **valeurs brutes** exploitables : reconnaissance via OCR / parsing si applicable |
+| `matching`       | Associer à des **entités internes** connues (fournisseur, copropriété, copropriétaire…) |
 
 
 
