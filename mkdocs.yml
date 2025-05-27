@@ -45,6 +45,8 @@ nav:
       - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
       - 'Suivis de dossiers': suivis/suivis-de-dossiers/suivis-de-dossiers.md
       - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
+  - 'Imports':
+      - 'Imports': imports/imports.md
 
 theme:
   name: material
