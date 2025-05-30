@@ -2,6 +2,16 @@
 
 Cette page décrit la **Structure de transaction bancaire unifiée** ainsi que le schéma JSON correspondant aux relevés bancaires utilisés dans FMT.
 
+### Formats d'import supportés
+
+Les relevés bancaires peuvent être importés dans différents formats.
+Les **imports Isabel** constituent le premier cas pris en charge :
+
+- CODA
+- CAMT.053
+- XLSX *(Isabel uniquement)*
+- MT940
+
 ### Structure de transaction bancaire unifiée
 
 | Champ | Type | Description |
@@ -102,6 +112,7 @@ Cette page décrit la **Structure de transaction bancaire unifiée** ainsi que l
 }
 ```
 
+
 **Exemple de structure JSON pour les extraits bancaires:**
 
 ```json
@@ -139,3 +150,42 @@ Cette page décrit la **Structure de transaction bancaire unifiée** ainsi que l
 	]
 }
 ```
+
+
+### Formats d'import supportés
+
+#### Isabel
+
+Voici les colonnes présentes lors d'un import **XLS Isabel** :
+
+- Account
+- Account holder
+- Bank
+- Account type
+- Bic
+- Type of account information
+- Statement number
+- Statement currency
+- Opening balance date
+- Opening balance
+- Closing balance date
+- Closing balance
+- Closing available balance
+- Entry date
+- Value date
+- Transaction amount
+- Transaction currency
+- Transaction type
+- Client reference
+- Structured Reference
+- Unstructured Reference
+- Bank reference
+- Counterparty name
+- Counterparty account
+- Counterparty bank BIC
+- Counterparty data
+- Transaction message
+- Sequence number
+- Reception Date/Time
+- stFreeMessage
+
