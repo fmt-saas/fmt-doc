@@ -1,7 +1,15 @@
 ## Comptes bancaires
 
 Les comptes bancaires sont associés aux identités.
-La clé d'unicité est le numéro IBAN (il ne peut pas y avoir deux comptes avec le même IBAN / deux Identity ne peuvent jamais avoir un compte identique).
+
+
+Par défaut, une identité permet de préciser un compte bancaire principal. Mais une identité peut être associée à un nombre non limité de comptes bancaires supplémentaires.
+
+Pour faciliter l'encodage, il y a une synchro entre la liste de compte et le compte renseigné dans l'identité : de sorte que le compte de l'identité est toujours présent également dans la liste.
+
+
+
+La clé d'unicité des `BankAccount` est le numéro IBAN (il ne peut pas y avoir deux comptes avec le même IBAN / deux Identity ne peuvent jamais avoir un compte identique).
 
 Les comptes bancaires référencés dans le cadre des copropriétés sont des entités spécifiques :
 
