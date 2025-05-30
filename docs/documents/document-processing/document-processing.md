@@ -65,3 +65,7 @@ Chaque sous-type permet de retrouver :
 - les champs attendus (ex : `account_code`, `vat_rate`, etc.)
 - les règles de validation associées
 - la stratégie de conversion (ex : vers des écritures comptables)
+
+### Lien avec la comptabilité
+
+Pour comprendre comment un `DocumentProcess` aboutit à la création d’une pièce et comment le JSON est synchronisé lors des modifications, se reporter à [Intégration comptable](document-integration.md).
