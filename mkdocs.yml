@@ -27,6 +27,7 @@ nav:
       - 'Gestion des consommations (eau/gaz/élec)': copropriete/gestion-des-consommations-eau-gaz-elec.md
       - 'Propriétaires (`Ownership`)': copropriete/proprietaires-ownership.md
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
+      - 'Comptes bancaires': copropriete/comptes-bancaires.md
   - 'Documents':
       - 'Aperçu': documents/documents.md
       - 'Organisation des documents':
