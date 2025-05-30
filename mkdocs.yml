@@ -40,6 +40,7 @@ nav:
           - 'Document Analysis': documents/document-processing/document-analysis.md
           - 'Document Identification': documents/document-processing/document-identification.md
           - 'Document Validation': documents/document-processing/document-validation.md
+          - 'Intégration comptable': documents/document-processing/document-integration.md
       - 'Email Digestor': documents/email-digestor/email-digestor.md
   - 'Suivis':
       - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
