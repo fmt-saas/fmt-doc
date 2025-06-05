@@ -3,22 +3,41 @@
 
 ### Funding
 
-Un **Financement** (`Funding`) représente une somme d'argent à recouvrer ou à verser. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, assimilable à une facture de vente.
+Un **Financement** (`Funding`) représente une somme d'argent à recouvrer ou à verser. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, liée à des écritures.
 
-> 💡 Bien que les `Funding` représentent des montants dus, leur cumul ne reflète pas toujours l'état réel du compte comptable d'un copropriétaire : certains financements peuvent ne pas avoir encore été générés, annulés ou faire l'objet de situations particulières.
+!!! note "Distinction entre suivi et comptabilité"
+    💡 Le cumul des `Funding` relatifs aux appels de fonds ne reflète pas toujours la situation comptable réelle  : certains financements peuvent ne pas avoir encore été générés, annulés ou faire l'objet de situations particulières.
 
 
 #### Origine comptable
 
-Chaque `Funding` est toujours rattaché, **directement ou indirectement**, à une **pièce comptable de référence**, telle que :
+Un `Funding` est le plus souvent rattaché, directement ou indirectement, à une **pièce comptable de référence**, telle que :
 
 - un `FundRequestExecution` (appel de fonds exécuté)
 - un `ExpenseStatement` (état des dépenses ou décompte)
 - une `Invoice` (facture fournisseur - à payer)
 
+Dans certains cas, un `Funding` est simplement lié à une OD (`MiscOperation`).
+
 Plusieurs `Funding` peuvent être générés à partir d'une seule pièce. 
 
-Dans le cas d’un **montant négatif**, le `Funding` est tout de même créé (notamment pour visualiser le droit à remboursement), mais son traitement dépend du contexte : il peut être ignoré, soldé par compensation ou supprimé si aucun remboursement n’est demandé.
+Le type d'un `Funding` est identité via le champ `funding_type`:
+
+| Type           | Description                                        |
+| ---------------- | ---------------------------------------------------- |
+| `installment`        | Financement pour le versement d'un acompte. |
+| `reimbursement`        | Financement pour un remboursement. |
+| `transfer`        | Financement pour transfert interne entre comptes.|
+| `invoice`  | Financement pour le paiement d'une facture. |
+| `fund_request`       | Financement d'appel de fonds. |
+| `expense_statement` | Financement de régulation suite à un décompte périodique. |
+
+
+
+!!! note "Montants négatifs & Remboursements"
+    Dans le cas d’un **montant négatif**, le `Funding` est tout de même créé (notamment pour visualiser le droit à remboursement), mais son traitement dépend du contexte : il peut être ignoré, soldé par compensation ou supprimé si aucun remboursement n’est demandé.
+
+
 
 
 #### Attribution automatique des paiements
@@ -30,12 +49,12 @@ Lors de la création d’un `Funding`, le système recherche automatiquement les
 
 Le champ `status` reflète exclusivement l’état financier du `Funding`, indépendamment de son éventuelle annulation :
 
-| Statut           | Signification                             |
-| ---------------- | ----------------------------------------- |
-| `pending`        | Aucun paiement n’a encore été affecté     |
-| `debit_balance`  | Paiement partiel                          |
-| `balanced`       | Montant payé intégralement                |
-| `credit_balance` | Trop-perçu par rapport au montant attendu |
+| Statut           | Signification                                        |
+| ---------------- | ---------------------------------------------------- |
+| `pending`        | Aucun paiement n’a encore été affecté                |
+| `debit_balance`  | Paiement partiel                                     |
+| `balanced`       | Montant payé intégralement                           |
+| `credit_balance` | Trop-perçu (ou versé) par rapport au montant attendu |
 
 
 #### Annulation d’une pièce de référence
@@ -60,21 +79,28 @@ Cela permet d’identifier facilement les `Funding` en attente de traitement par
 
 ### Payment
 
-Les `Payments` représentent les sommes **effectivement versées** par un copropriétaire. Ils sont liés à des écritures bancaires et peuvent être affectés à un ou plusieurs `Fundings`.
+Les `Payments` représentent les sommes **effectivement versées** : ils sont liés à des lignes d'extraits bancaires et peuvent être affectés à un ou plusieurs `Fundings`.
 
 #### À la création du paiement
 
-- Un `Payment` est toujours créé **à partir d’un extrait bancaire**
-- Il est initialement toujours lié à un Funding via réconciliation (auto ou manuelle)
-- lorsqu'il est réconcilié, il est **rattaché à une écriture comptable**.
+- Un `Payment` est toujours créé **à partir d’un extrait bancaire**;
+- Il est initialement toujours lié à un Funding via réconciliation (auto ou manuelle);
+- lorsqu'il est réconcilié, il est **rattaché à une écriture comptable**;
 - La direction dépend du signe du montant (positif = réception, négatif = dépense)
 
 #### Création d’un Funding
 
-- Tous les `Payments` orphelins ou en crédit disponibles pour le copropriétaire sont **réaffectés automatiquement** à ce nouveau Funding.
-- Le `funding_id` est mis à jour
+Lors de la création d'un nouveau financement, tous les `Payments` orphelins ou en crédit disponibles pour le copropriétaire sont **réaffectés automatiquement** au nouveau `Funding` (leur champ `funding_id` est mis à jour).
 
 #### En cas d’annulation d’un Funding
 
-- Tous les `Payments` liés sont **détachés** (`funding_id = NULL`)
-- Ils peuvent être **réaffectés** manuellement ou automatiquement à un autre Funding actif (par défaut, au premier Funding non totalement payé)
+- Tous les `Payments` liés sont **détachés** (`funding_id = NULL`), et peuvent alors être **réaffectés** manuellement ou automatiquement à un autre `Funding` actif (par défaut, au premier `Funding` non totalement payé)
+
+
+
+#### Logique entre Financements et écritures comptables
+
+Lorsqu'on crée un funding, dans certains cas on créée des écritures pour indiquer qu'un montant est attendu (appels de fonds ou relevés périodiques)
+dans d'autres cas, on fait une action qui aboutira à des écritures (assimilables à des OD).
+
+Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réaliser.
