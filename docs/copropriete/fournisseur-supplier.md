@@ -16,6 +16,15 @@ A la création, assignation d'un compte comptable, créé comme sous-compte de "
 Possibilité d'associer à une série de comptes de charge.
 
 
-Un même fournisseur peut être contracté par différentes copropriétés et, théoriquement, fournir plusieurs services différents pour une même copropriété
+Un même fournisseur peut être contracté par différentes copropriétés et, théoriquement, fournir plusieurs services différents pour une même copropriété:
 * toujours un seul compte comptable (copro) par fournisseur
 * pouvoir associer une copropriété à un fournisseur (Suppliership) et à un Contrat spécifique (SupplierContract)
+
+
+
+### Banques
+
+Les banques sont des fournisseurs (utilisent la même table).
+L'identification peut se faire via le code BIC/Swift.
+Par convention, on considère que les extraits bancaires, quelle que soit leur source, sont émis par le fournisseur correspondant à la banque.
+Corollaire : lors de la création des Copropriété, des Suppliership doivent être ajoutés sur base des comptes bancaires définis pour une Copropriété.
