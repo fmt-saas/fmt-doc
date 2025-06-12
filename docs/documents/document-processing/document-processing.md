@@ -1,8 +1,16 @@
-## Document Processing
+# Document Processing
 
 Le processus d'importation d'un document dans FMT suit un flux complet allant du téléversement (**upload**), en passant par la **complétude**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
 
 Ce fonctionnement repose principalement sur les entités `Document`, `DocumentProcess` et `DocumentType`, avec le support de services modulaires de validation et de transformation.
+
+
+La plupart des pièces liées à des opérations comptables — qu’elles soient directes ou indirectes — utilisent le statut **`proforma`**, par analogie avec les factures de vente. Une pièce en `proforma` est publiée à titre informatif, mais n’a aucun effet réel en comptabilité. Elle peut néanmoins être visualisée, relue ou vérifiée par une personne autre que celle à l’origine de sa création, en vue d’une future validation.
+
+Lorsqu’un document nécessite un encodage plus complexe, pouvant impliquer plusieurs étapes ou plusieurs personnes (comme des extraits bancaires à réconcilier, ou des factures multisites), il peut être conservé temporairement avec le statut **`draft`**. Ce statut permet une édition plus libre, sans contrainte immédiate de complétude ou de validation.
+
+Une fois qu’un élément est considéré comme prêt — c’est-à-dire qu’il a été vérifié, complété et, le cas échéant, réconcilié — il peut être soumis et passe alors au statut **`posted`**. À ce stade, il est rattaché aux entités cibles (par exemple, des écritures comptables ou des paiements), sans pour autant que ces entités soient validées indépendamment. Ce principe permet de centraliser la logique de validation uniquement au niveau de la pièce comptable, et non des objets dérivés.
+
 
 
 ### Étapes du workflow

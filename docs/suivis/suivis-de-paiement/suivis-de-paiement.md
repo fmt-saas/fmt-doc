@@ -3,10 +3,12 @@
 
 ### Funding
 
-Un **Financement** (`Funding`) représente une somme d'argent à recouvrer ou à verser. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, liée à des écritures.
+Un objet `Funding` représente un **flux de trésorerie attendu ou initié**, dans le cadre d’un financement, d’un virement, d’un remboursement ou d’un mouvement interne. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, liée à des écritures.
 
 !!! note "Distinction entre suivi et comptabilité"
     💡 Le cumul des `Funding` relatifs aux appels de fonds ne reflète pas toujours la situation comptable réelle  : certains financements peuvent ne pas avoir encore été générés, annulés ou faire l'objet de situations particulières.
+    💡 Les funding et les paiements sont uniquement des moyens de suivre les paiements attendus et de générer des SEPA/QR codes, et sont dissociés des écritures comptables (mais liés via l'objet auquel ils se rapportent) permettent d'identifier à quel moment des écritures sont nécessaires ou peuvent être faites.
+
 
 
 #### Origine comptable
@@ -16,8 +18,17 @@ Un `Funding` est le plus souvent rattaché, directement ou indirectement, à une
 - un `FundRequestExecution` (appel de fonds exécuté)
 - un `ExpenseStatement` (état des dépenses ou décompte)
 - une `Invoice` (facture fournisseur - à payer)
+- `MiscOperation` (OD de remboursement )
+- `MoneyTransfer` (transfert entre comptes internes)
 
-Dans certains cas, un `Funding` est simplement lié à une OD (`MiscOperation`).
+
+
+Notes : 
+
+* dans le cas de Funding avec montant négatif (funding de paiement - typiquement facture d'achat), une option permet de générer un SEPA (ordre de paiement à envoyer à la banque)
+* dans les autre cas, on peut générer un bordereau de paiement avec QR code (template selon la pièce comptable)
+
+
 
 Plusieurs `Funding` peuvent être générés à partir d'une seule pièce. 
 
@@ -57,6 +68,72 @@ Le champ `status` reflète exclusivement l’état financier du `Funding`, indé
 | `credit_balance` | Trop-perçu (ou versé) par rapport au montant attendu |
 
 
+
+
+
+#### Lien avec les comptes bancaires
+ Chaque `Funding` peut impliquer **un ou deux comptes bancaires**, selon son type et son rôle (entrant / sortant).
+
+##### Champ `bank_account_id` (compte principal)
+
+Le champ `bank_account_id` représente le **compte bancaire concerné par le mouvement principal**.
+
+- Si le **montant (`amount`) est positif** : le compte `bank_account_id` est **le bénéficiaire attendu** du paiement (ex. : on attend un versement sur ce compte).
+- Si le **montant est négatif** : le compte `bank_account_id` est **le compte à débiter** pour effectuer un paiement sortant.
+
+> 🎯 **Interprétation métier** : `bank_account_id` est toujours "le compte concerné par le mouvement côté copropriété".
+
+
+
+##### Champ `counterpart_bank_account_id` (compte opposé)
+
+Le champ `counterpart_bank_account_id` est renseigné **seulement si le type de `Funding` l'exige**. Il permet de **spécifier l’autre extrémité du flux**, lorsque le mouvement est un **transfert ou un remboursement bilatéral**.
+
+- Dans un **virement interne**, c’est le compte bancaire **de destination** si `bank_account_id` est le compte de départ.
+- Dans un **remboursement**, c’est le compte bancaire **du tiers ou du client**.
+- Dans un **appel de fonds**, ce champ est souvent laissé vide (on ne connaît pas les comptes des copropriétaires).
+
+> 🔐 **Contrôle** : la présence ou l'absence de `counterpart_bank_account_id` dépend du **type** de `Funding`, via une contrainte conditionnelle.
+
+
+
+##### Règles d’interprétation
+
+| Montant       | `bank_account_id` est…               | `counterpart_bank_account_id` est…             |
+| ------------- | ------------------------------------ | ---------------------------------------------- |
+| Positif (> 0) | Le compte **recevant** le paiement   | (optionnel) Le compte de provenance (si connu) |
+| Négatif (< 0) | Le compte **effectuant** le paiement | Le compte de destination                       |
+
+
+
+##### Cas typiques
+
+###### Appel de fonds / Paiement attendu :
+
+```
+amount = 150.00
+bank_account_id = compte bancaire de la copropriété
+counterpart_bank_account_id = null (le copropriétaire peut faire le versement via n'importe quel compte)
+```
+
+###### Paiement à un fournisseur :
+
+```
+amount = -450.00
+bank_account_id = compte bancaire de la copropriété
+counterpart_bank_account_id = compte du fournisseur
+```
+
+###### Virement interne :
+
+```
+amount = -5000.00
+bank_account_id = compte source
+counterpart_bank_account_id = compte de destination
+```
+
+
+
 #### Annulation d’une pièce de référence
 
 Lorsqu’un document de référence (appel, décompte…) est annulé :
@@ -75,6 +152,9 @@ Pour en assurer le suivi, un indicateur booléen `is_sent` est utilisé :
 - `true` : l’ordre de virement a été généré (et potentiellement transmis à la banque)
 
 Cela permet d’identifier facilement les `Funding` en attente de traitement par le gestionnaire financier (comptable, syndic, etc.) et d’éviter les doublons ou oublis lors des campagnes de remboursement.
+
+
+
 
 
 ### Payment
