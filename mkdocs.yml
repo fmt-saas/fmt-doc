@@ -26,6 +26,7 @@ nav:
       - 'Gestion des charges communes': copropriete/gestion-des-charges-communes.md
       - 'Gestion des consommations (eau/gaz/élec)': copropriete/gestion-des-consommations-eau-gaz-elec.md
       - 'Propriétaires (`Ownership`)': copropriete/proprietaires-ownership.md
+      - 'Mutations / Transferts de propriété': copropriete/mutations-transferts-de-propriete.md
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
       - 'Comptes bancaires': copropriete/comptes-bancaires.md
   - 'Documents':
