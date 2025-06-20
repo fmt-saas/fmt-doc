@@ -239,9 +239,8 @@ Cependant, des opérations automatiques peuvent être planifiée pour le premier
 
 
 **Récap - 2 cas particuliers pour les accounting entries :**
-
-1) écritures de report temporaires ('is_temp' - sont prises en compte dans la balance, mais pouvoir être supprimées)
-2) écritures en attente d'ouverture de période ('planned' - ne sont pas prises en compte dans la balance, mais ne peuvent pas être supprimées)
+  1. écritures de report temporaires ('is_temp' - sont prises en compte dans la balance, mais pouvoir être supprimées)
+  2. écritures en attente d'ouverture de période ('planned' - ne sont pas prises en compte dans la balance, mais ne peuvent pas être supprimées)
 
 
 
