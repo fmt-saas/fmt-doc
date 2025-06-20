@@ -33,6 +33,12 @@ L'étape **`Completion`** se décompte en 3 parties:
 | `identification` | Déterminer la **nature fonctionnelle** du document (type/subtype) |
 | `extraction`     | Extraire les **valeurs brutes** exploitables : reconnaissance via OCR / parsing si applicable |
 | `matching`       | Associer à des **entités internes** connues (fournisseur, copropriété, copropriétaire…) |
+| `drafting`       | Générer un **document temporaire** (proforma) à partir des données collectées (sans incidence comptable) |
+
+
+
+**Note pour le lien entre Facture fournisseur et Supplier(ship):** 
+Un fournisseur peut avoir plusieurs comptes bancaires. Si un numéro de compte est trouvé sur la facture, et s'il correspond à un compte bancaire du fournisseur : on utilise celui-là. S'il n'est pas retrouvé automatiquement,  l'utilisateur peut sélectionner le compte (iban) à utiliser pour le paiement.
 
 
 
