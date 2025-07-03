@@ -60,3 +60,8 @@ L'opération doit rester équilibrée : les montants remboursés doivent corres
 #### 2.2. Charges courantes
 
 Les charges de fonctionnement sont également réparties au prorata temporis. Un changement de propriétaire peut être pris en compte à partir d'une date donnée grâce à la propriété `effective_from` sur les droits de propriété (`Ownership`).
+
+### Indications de suivi
+
+- L'état des charges indique « Mutation en cours » tant que la mutation n'est pas finalisée.
+- Une alerte s'affiche lors de la création d'un nouveau Funding si une mutation est active.
