@@ -6,6 +6,7 @@ edit_uri: ""
 docs_dir: docs
 nav:
   - 'Welcome': index.md
+  - 'Modèles de données': modeles-de-donnees.md
   - 'Budget':
       - 'Appels de fonds': budget/appels-de-fonds.md
       - 'Suivi des appels': budget/suivi-des-appels.md
