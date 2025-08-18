@@ -44,6 +44,7 @@ nav:
           - 'Document Validation': documents/document-processing/document-validation.md
           - 'Intégration comptable': documents/document-processing/document-integration.md
       - 'Email Digestor': documents/email-digestor/email-digestor.md
+      - 'Signatures électroniques': documents/signatures-electroniques.md
   - 'Suivis':
       - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
       - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
