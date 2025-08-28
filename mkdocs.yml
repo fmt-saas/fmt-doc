@@ -23,6 +23,7 @@ nav:
           - 'Réconciliation CODA': comptabilite/encodage-facture-achat/reconciliation-coda.md
   - 'Copropriété':
       - 'Création nouvelle Copropriété': copropriete/creation-nouvelle-copropriete.md
+      - 'Configuration & paramétrage': copropriete/configuration.md
       - 'Fournisseur (`Supplier`)': copropriete/fournisseur-supplier.md
       - 'Gestion des charges communes': copropriete/gestion-des-charges-communes.md
       - 'Gestion des consommations (eau/gaz/élec)': copropriete/gestion-des-consommations-eau-gaz-elec.md
