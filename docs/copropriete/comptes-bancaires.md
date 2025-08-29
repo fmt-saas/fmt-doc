@@ -23,6 +23,90 @@ Quand on ajoute un fournisseur à une copropriété, par défaut, on ajoute le c
 
 Un relevé bancaire est considéré comme une pièce comptable (mais n'en est pas réelelment une) et suit un process similaire à l’import et au traitement des autres types de documents.
 
+### Encodage des extraits bancaires
+
+#### 1. Concepts clés
+
+* **Funding** : représente un mouvement **attendu** (ex. facture client ou fournisseur).
+* **Payment** : opération métier qui relie une ou plusieurs **lignes d’extrait bancaire** à un **Funding**, ou directement à un **compte comptable** (si non attendu).
+* **BankStatement** : relevé bancaire regroupant plusieurs lignes.
+* **BankStatementLine** : mouvement bancaire réel (crédit/débit). C’est l’élément qui déclenche l’**écriture comptable**.
+* **AccountingEntry** : écriture comptable validée, générée **lors du “post” du relevé**.
+
+#### 2. Logique métier
+
+##### Mouvement attendu (`Funding`)
+
+* Exemple : facture client/fournisseur.
+* La ligne bancaire est rapprochée automatiquement (via communication) ou manuellement à un Funding.
+* Si paiement partiel ou multiple → utilisation de *Payments* pour ventiler.
+* Écriture :
+  * Encaissement client : **Débit Banque / Crédit Clients**
+  * Paiement fournisseur : **Débit Fournisseurs / Crédit Banque**
+
+##### Mouvement non attendu
+
+* Exemple : indemnité d’assurance, frais bancaires.
+* La ligne est affectée directement à un **compte comptable** (pas de Funding).
+* Si compte en classe 6/7 → déclenche la **répartition copropriétaires** (clé, ventilation, privatif).
+* Écriture :
+  * Frais bancaires : **Débit 627 Frais bancaires / Crédit Banque**
+
+##### Règles communes
+
+* Un *Payment* est soit lié à un **Funding**, soit à un **compte comptable**.
+* Une *BankStatementLine* peut être ventilée sur plusieurs *Payments*.
+* Un *Funding* peut être soldé par plusieurs *Payments*.
+
+#### 3. Réconciliation
+
+* **Automatique** : tentative via la communication bancaire (réf. facture, montant, etc.).
+* **Manuelle** : sélection explicite d’un Funding ou d’un compte comptable si l’auto-match a échoué.
+* Une ligne est **reconciled** si le montant total des Payments associés = montant de la ligne.
+* Un relevé est **is_reconciled** si toutes ses lignes sont réconciliées (ou ignorées).
+
+#### 4. Comptabilisation (Posting)
+
+1. Condition : le relevé doit être à la fois **is_balanced** (somme des lignes = delta soldes) et **is_reconciled**.
+2. Action `post` sur le relevé :
+   * Génération d’une **AccountingEntry par ligne d’extrait**.
+   * Écritures respectent le **signe du montant** :
+     * Montant positif : **Débit Banque / Crédit Contrepartie**
+     * Montant négatif : **Débit Contrepartie / Crédit Banque**
+   * Contrepartie déterminée par priorité :
+     1. Funding (compte client/fournisseur)
+     2. Payment → `accounting_account_id`
+     3. Fallback → compte “Clients” (`trade_debtors`) ou autre compte par défaut.
+3. Chaque ligne est marquée avec son `accounting_entry_id` pour éviter les doublons.
+
+#### 5. Cas particuliers
+
+* **Paiement partiel** : un Funding reste “ouvert” tant que la somme des Payments ne couvre pas le solde attendu.
+* **Virement global** : une ligne bancaire peut être ventilée sur plusieurs Fundings via plusieurs Payments.
+* **Écarts** : si la somme Payment ≠ Funding (ex. 0,05 € manquant), on peut affecter l’écart à un compte spécifique (ex. 658).
+* **Ignored** : une ligne peut être ignorée (pas d’écriture) mais bloque la réconciliation tant qu’elle n’est pas explicitement marquée comme telle.
+
+#### 6. Vue développeur
+
+* **BankStatementLine** → déclenche `doGenerateAccountingEntry()` au moment du post.
+* **Payments** :
+  * contiennent le lien vers Funding ou `accounting_account_id`.
+  * garantissent la ventilation entre plusieurs lignes / fundings.
+* **AccountingEntry** :
+  * créé avec :
+    * `condo_id`, `entry_date`, `fiscal_year_id`, `fiscal_period_id`, `journal_id`
+    * `origin_object_class = BankStatement`
+    * `origin_object_id = <statement_id>`
+  * lignes d’écritures : Banque vs Contrepartie (selon signe).
+
+#### 7. Récapitulatif visuel (simplifié)
+
+```
+Funding (attendu)  <--->  Payment  <--->  BankStatementLine  -->  AccountingEntry
+                                |
+                                v
+                        Compte comptable direct (si non attendu)
+```
 
 ### Import des extraits
 
