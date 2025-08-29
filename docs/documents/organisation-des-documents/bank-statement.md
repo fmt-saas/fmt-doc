@@ -200,7 +200,7 @@ Voici les colonnes présentes lors d'un import **XLS Isabel** :
 ## Traitement des extraits bancaires
 
 !!! note "Processus détaillé"
-    Le processus détaillé du traitement des extraits bancaires et du suivi des paiements est repris dans la section [Suivi de Paiement](/suivis/suivis-de-paiement/suivis-de-paiment.md).
+    Le processus détaillé du traitement des extraits bancaires et du suivi des paiements est repris dans la section [Suivi de Paiement](/suivis/suivis-de-paiement/suivis-de-paiement/).
 
 Lors de la réception d’un fichier d’extrait bancaire, on ne sait pas a priori s’il s’agit :
 
