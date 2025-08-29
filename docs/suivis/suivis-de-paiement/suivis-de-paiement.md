@@ -2,7 +2,7 @@
 
 
 
-Récap
+### Récap
 
 ```
 BankStatement (pièce justificative)
@@ -208,12 +208,6 @@ Un paiement (`Payment`) est toujours lié à un financement (`Funding`) et à un
 
 Note : Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas ou le montant versé correspond à plusieurs montants attendus), et donc à plusieurs financements.
 
-
-#### Définition
-
-Un **Payment** représente un paiement effectif, issu d’une `BankStatementLine`.
-C’est le lien entre un mouvement bancaire et un ou plusieurs `Funding`.
-
 #### Règles
 
 * Toujours créé à partir d’une **BankStatementLine**
@@ -259,7 +253,7 @@ dans d'autres cas, on fait une action qui aboutira à des écritures (assimilabl
 
 Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réaliser.
 
-#### 4.1 Principe
+#### Principe
 
 * **1 BankStatementLine = 1 AccountingEntry** (journal Banque)
 * Chaque écriture contient :
@@ -268,10 +262,57 @@ Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réa
   * Contrepartie (400, 440, 6xx, 7xx…)
 * Les Payments ventilent le lien vers les Fundings → lettrage partiel possible
 
+
+
+#### Réconciliation
+
+On fait en sorte de mettre le système dans une situation cohérente - où on a des extraits bancaires qui respectent un format standard (même dans le cas d'encodage manuel).
+
+* réconcilier signifie "savoir comment on va faire les écritures dans la comptabilité"
+
+* le lettrage correspond au rapprochement  entre une ligne d'extrait et une écriture comptable
+  -> ca permet de retrouver quelle est la ligne d'écriture comptable qui est apurée par la ligne d'extrait
+  1 ligne d'extrait = 1 écriture comptable (avec 1 + nb paiements)
+  note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
+
+* ce sont les Funding qui permettent de savoir comment réaliser les écritures
+
+* -> faire en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
+
+* pour les mouvements non attendus (e.g. bank fees), on créée un Funding au moment de la réconciliation : funding_type = misc
+	(une indication du compte à utiliser peut être fournie manuellement par l'utilisateur)
+
+* une ligne d'extrait est réconciliée et prête à être postée si la somme des paiements qui lui sont liés correspond à son montant 
+
+* une ligne peut être liée à plusieurs paiements et, par conséquent, à plusieurs Funding
+	Ex. un copropriétaire qui paie un montant qui couvre plusieurs appels de fonds, ou qui fait un seul paiement couvrant provisions et appels de fonds.
+	Dans ces situations, la ligne doit être décomposée en plusieurs paiements (pour être liée à plusieurs Funding).
+
+* Les actions suivantes sont possibles sur un extrait :
+  * attempt_reconcile
+  * post (si is_reconciled)
+
+
+* lorsqu'un extrait bancaire est "posted", on fait un refresh_status pour tous les fundings impactés
+
+
+
+#### Types d'encodage 
+
+* Situation 1 : Une ligne avec une communication qui correspond à un match 
+  	-> création automatique du Payment (brouillon)
+
+* Situation 2 : Une ligne sans communication mais avec un montant attendu parmi les financement
+  	-> sur base des infos de la ligne, un compte de destination peut être associé, il est alors utilisé pour filtrer les Fundings existants et permettre la sélection
+
+* Situation 3 : Une ligne (avec ou sans communication), mais pour un mouvement non attendu
+  	-> l'utilisateur sélectionne le compte de destination, un funding et un paiement sont créés (comme si on attendait le mouvement, mais sans écriture préalable de contrepartie)
+
+
+
 #### Cas particuliers
 
 * **Transferts internes & remboursements** :
-
   * Funding spécifique créé
   * Écriture générée seulement à la réception de l’extrait bancaire
 * **Mouvements inattendus (frais bancaires, charges)** :
@@ -279,11 +320,4 @@ Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réa
   * Funding `misc` créé lors de la réconciliation
   * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
 
-#### Réconciliation
-
-* Réconcilier = savoir comment passer l’écriture comptable
-* Lettrage = rapprocher la ligne d’extrait de l’écriture attendue
-* Conditions de réconciliation validée :
-
-  * La somme des Payments liés à la ligne = montant de la ligne
-
+#### 
