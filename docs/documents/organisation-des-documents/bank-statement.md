@@ -195,8 +195,6 @@ Voici les colonnes présentes lors d'un import **XLS Isabel** :
 - Reception Date/Time
 - stFreeMessage
 
-Voici une version rédigée, claire et prête à intégrer dans ta documentation technique sous la section **"Gestion des extraits bancaires"** (`BankStatement`).
-
 
 
 ## Traitement des extraits bancaires
