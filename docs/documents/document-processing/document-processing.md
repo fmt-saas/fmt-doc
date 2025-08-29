@@ -30,10 +30,10 @@ L'étape **`Completion`** se décompte en 3 parties:
 
 | Étape            | Objectif principal                                           |
 | ---------------- | ------------------------------------------------------------ |
-| `identification` | Déterminer la **nature fonctionnelle** du document (type/subtype) |
-| `extraction`     | Extraire les **valeurs brutes** exploitables : reconnaissance via OCR / parsing si applicable |
-| `matching`       | Associer à des **entités internes** connues (fournisseur, copropriété, copropriétaire…) |
-| `drafting`       | Générer un **document temporaire** (proforma) à partir des données collectées (sans incidence comptable) |
+| [`identification`](document-identification.md) | Déterminer la **nature fonctionnelle** du document (type/subtype) |
+| [`extraction`](document-analysis.md)     | Extraire les **valeurs brutes** exploitables : reconnaissance via OCR / parsing si applicable |
+| [`matching`](document-analysis.md)       | Associer à des **entités internes** connues (fournisseur, copropriété, copropriétaire…) |
+| [`drafting`](document-analysis.md)       | Générer un **document temporaire** (proforma) à partir des données collectées (sans incidence comptable) |
 
 
 

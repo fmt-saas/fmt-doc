@@ -1,5 +1,14 @@
 ## Réconciliation CODA
 
+Dans les réconciliations de paiements
+
+* s'il y a un match parfait : (VCS + montant), on l'applique en priorité
+* sinon on applique la logique du plus vieux dû payé en premiers
+
+
+
+
+
 Utilisation du compte 58 pour transfert de compte bancaire (au moment où on réconcilie un CODA)
 
 
@@ -62,3 +71,37 @@ Au 1er trimestre 2024 (Date de début = 01/01/2024 - Date de fin = 31/03/2024) :
 
 Si on planifie les moments de manière anticipative, on risque des incohérences en cas de modification de l'exercice en cours (périodes à venir)
 -> il faut avoir une logique qui génère un état sur base de la configuration actuelle et qui permet de continuer les imputations à chaque nouvelle période en considérant les factures/charges qui ne sont pas entièrement assignées.
+
+
+
+| Date     | Opération                             | Compte                      | Débit   | Crédit  |
+| -------- | ------------------------------------- | --------------------------- | ------- | ------- |
+|          | **Écriture 1 (imputation facture)**   |                             |         |         |
+| 01-11-23 | Réception facture assurance 2023–2024 | 613000 - Assurance          | 166.67  |         |
+| 01-11-23 | Réception facture assurance 2023–2024 | 490000 - Charges à reporter | 833.33  |         |
+| 01-11-23 | Réception facture assurance 2023–2024 | 440000 - Fournisseur        |         | 1000.00 |
+|          |                                       |                             |         |         |
+|          | **Écriture 2 (extrait bancaire)**     |                             |         |         |
+| 15-12-23 | Paiement fournisseur                  | 440000 - Fournisseur        |         | 1000.00 |
+| 15-12-23 | Paiement fournisseur                  | 550000 - Banque             | 1000.00 |         |
+|          |                                       |                             |         |         |
+|          | **Écriture 3 (ouverture Q1 2024)**    |                             |         |         |
+| 01-01-24 | Réimputation Q1 2024                  | 613000 - Assurance          | 248.63  |         |
+| 01-01-24 | Réimputation Q1 2024                  | 490000 - Charges à reporter |         | 248.63  |
+|          |                                       |                             |         |         |
+|          | **Écriture 4 (ouverture Q2 2024)**    |                             |         |         |
+| 01-04-24 | Réimputation Q2 2024                  | 613000 - Assurance          | 248.63  |         |
+| 01-04-24 | Réimputation Q2 2024                  | 490000 - Charges à reporter |         | 248.63  |
+|          |                                       |                             |         |         |
+|          | **Écriture 5 (ouverture Q3 2024)**    |                             |         |         |
+| 01-07-24 | Réimputation Q3 2024                  | 613000 - Assurance          | 251.37  |         |
+| 01-07-24 | Réimputation Q3 2024                  | 490000 - Charges à reporter |         | 251.37  |
+|          |                                       |                             |         |         |
+|          | **Écriture 6 (ouverture Q4 2024)**    |                             |         |         |
+| 01-10-24 | Réimputation Q4 2024                  | 613000 - Assurance          | 84.70   |         |
+| 01-10-24 | Réimputation Q4 2024                  | 490000 - Charges à reporter |         | 84.70   |
+
+
+
+
+

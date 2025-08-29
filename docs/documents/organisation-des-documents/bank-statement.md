@@ -1,10 +1,12 @@
 #  Gestion des extraits bancaires (`BankStatement`)
 
 
+Un BankStatement est la pièce justificative représentant un extrait bancaire importé dans le système. Il contient un ensemble de lignes (BankStatementLine) correspondant aux mouvements financiers enregistrés par la banque.
+Chaque ligne est associée à une ou plusieurs écritures comptables.
 
 ## Bank Statement Schema
 
-Cette page décrit la **Structure de transaction bancaire unifiée** ainsi que le schéma JSON correspondant aux relevés bancaires utilisés dans FMT.
+Pour modéliser les imports des extraits bancaires, on utilise une **Structure de transaction bancaire unifiée** sous la forme d'un schéma JSON.
 
 ### Formats d'import supportés
 
@@ -199,6 +201,9 @@ Voici une version rédigée, claire et prête à intégrer dans ta documentation
 
 ## Traitement des extraits bancaires
 
+!!! note "Processus détaillé"
+    Le processus détaillé du traitement des extraits bancaires et du suivi des paiements est repris dans la section [Suivi de Paiement](/suivis/suivis-de-paiement/suivis-de-paiment.md).
+
 Lors de la réception d’un fichier d’extrait bancaire, on ne sait pas a priori s’il s’agit :
 
 - d’un **relevé unique lié à un seul numéro de compte**, ou
@@ -222,21 +227,23 @@ Cette entité se charge de :
 
 ### Étape 2 : Traitement d’un `BankStatement`
 
-Chaque `BankStatement` contient une ou plusieurs lignes (`BankStatementLine`). Ces lignes doivent être **réconciliées** avec des paiements existants ou en attente (`Funding`).
+Chaque `BankStatement` contient une ou plusieurs lignes (`BankStatementLine`). Ces lignes doivent être **réconciliées** .
+
+Elles peuvent l'être soit avec des pièces en attente de paiement (via un `Funding`), soit de manière manuelle (s'il s'agit d'une charge ou d'un produit à répartir sur l'ensemble de la copropriété; ou s'il s'agit d'un mouvement exceptionnel, à traiter comme une OD).
 
 #### Statuts et validations
 
 - Lors de la création, un `BankStatement` peut être en **état provisoire** (`proforma`)
-- Les lignes (`BankStatementLine`) peuvent être liées à un ou plusieurs **paiements "brouillons"** (non validés)
+- Les lignes (`BankStatementLine`) peuvent être liées à un ou plusieurs **paiements**
 
 #### Validation
 
 Lorsqu’un extrait est validé :
 
-- Le `BankStatement` passe à l’état **"invoiced"**
+- Le `BankStatement` passe à l’état **"posted"**
 - Tous les paiements associés sont **validés**
-- Des **écritures comptables** correspondantes sont générées
-- Chaque écriture référence le paiement source via le champ `origin_object_class`
+- Des **écritures comptables** correspondantes à chaque ligne sont générées
+- Chaque écriture référence la ligne d'extrait source via le champ `origin_object_class`
 
 
 

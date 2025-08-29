@@ -1,6 +1,46 @@
 ## Suivis de paiement
 
 
+
+Récap
+
+```
+BankStatement (pièce justificative)
+ └─ BankStatementLine (mouvement réel)  --- AccountingEntry (écriture comptable finale)
+     └─ Payment(s) (ventilation du mouvement)
+         └─ Funding(s) (créance/dette attendue)
+             └─ pièces d'origine (PurchaseInvoice, ExpenseStatement, FundRequestExecution, MiscOperation)
+```
+
+
+
+### BankStatement
+
+Un **BankStatement** représente un extrait bancaire reçu.
+C’est la **pièce justificative** : il regroupe toutes les lignes (`BankStatementLine`) issues d’un relevé bancaire et constitue la source pour la création des écritures comptables.
+
+#### Structure des lignes
+
+Chaque `BankStatementLine` est normalisée pour permettre une gestion uniforme.
+
+| Champ                  | Type      | Description                          |
+| ---------------------- | --------- | ------------------------------------ |
+| `transaction_id`       | string    | Identifiant unique de la transaction |
+| `date`                 | date-time | Date de l’opération                  |
+| `value_date`           | date-time | Date de valeur si différente         |
+| `amount`               | number    | Montant débité ou crédité            |
+| `currency`             | string    | Devise (ISO 4217)                    |
+| `balance`              | number    | Solde du compte après transaction    |
+| `counterparty`         | string    | Tiers associé                        |
+| `counterparty_account` | string    | IBAN du tiers                        |
+| `counterparty_bic`     | string    | BIC du tiers                         |
+| `communication`        | string    | Communication libre ou structurée    |
+| `reference`            | string    | Référence de paiement ou de virement |
+
+
+
+
+
 ### Funding
 
 Un objet `Funding` représente un **flux de trésorerie attendu ou initié**, dans le cadre d’un financement, d’un virement, d’un remboursement ou d’un mouvement interne. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, liée à des écritures.
@@ -11,7 +51,7 @@ Un objet `Funding` représente un **flux de trésorerie attendu ou initié**, da
 
 
 
-#### Origine comptable
+#### Origine (comptable)
 
 Un `Funding` est le plus souvent rattaché, directement ou indirectement, à une **pièce comptable de référence**, telle que :
 
@@ -28,7 +68,7 @@ Notes :
 * dans le cas de Funding avec montant négatif (funding de paiement - typiquement facture d'achat), une option permet de générer un SEPA (ordre de paiement à envoyer à la banque)
 * dans les autre cas, on peut générer un bordereau de paiement avec QR code (template selon la pièce comptable)
 
-
+#### Typologie
 
 Plusieurs `Funding` peuvent être générés à partir d'une seule pièce. 
 
@@ -49,6 +89,11 @@ Le type d'un `Funding` est identité via le champ `funding_type`:
     Dans le cas d’un **montant négatif**, le `Funding` est tout de même créé (notamment pour visualiser le droit à remboursement), mais son traitement dépend du contexte : il peut être ignoré, soldé par compensation ou supprimé si aucun remboursement n’est demandé.
 
 
+#### Particularités
+
+* Montants **négatifs** possibles (ex. remboursement attendu)
+* Génération possible d’un **ordre bancaire SEPA** pour paiements sortants
+* Statut `is_sent` permet de suivre si le SEPA a été généré et transmis
 
 
 #### Attribution automatique des paiements
@@ -116,7 +161,7 @@ bank_account_id = compte bancaire de la copropriété
 counterpart_bank_account_id = null (le copropriétaire peut faire le versement via n'importe quel compte)
 ```
 
-###### Paiement à un fournisseur :
+###### Paiement à un fournisseur (facture d'achat):
 
 ```
 amount = -450.00
@@ -155,11 +200,34 @@ Cela permet d’identifier facilement les `Funding` en attente de traitement par
 
 
 
-
-
 ### Payment
 
-Les `Payments` représentent les sommes **effectivement versées** : ils sont liés à des lignes d'extraits bancaires et peuvent être affectés à un ou plusieurs `Fundings`.
+Les `Payments` représentent les sommes **effectivement versées**.
+
+Un paiement (`Payment`) est toujours lié à un financement (`Funding`) et à une ligne d'extrait bancaire (`BankStateminrLine`).
+
+Note : Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas ou le montant versé correspond à plusieurs montants attendus), et donc à plusieurs financements.
+
+
+#### Définition
+
+Un **Payment** représente un paiement effectif, issu d’une `BankStatementLine`.
+C’est le lien entre un mouvement bancaire et un ou plusieurs `Funding`.
+
+#### Règles
+
+* Toujours créé à partir d’une **BankStatementLine**
+* Toujours lié à un **Funding** (réconciliation auto ou manuelle)
+* Une ligne d’extrait peut être décomposée en **plusieurs Payments**
+* Inversement, plusieurs lignes d’extrait peuvent solder un même Funding
+
+#### Workflow
+
+1. Création d’un Payment (automatique ou manuelle)
+2. Attribution à un Funding
+3. Validation → rattachement à une écriture comptable
+4. En cas d’annulation de Funding → Payments détachés et réaffectables
+
 
 #### À la création du paiement
 
@@ -178,9 +246,44 @@ Lors de la création d'un nouveau financement, tous les `Payments` orphelins ou 
 
 
 
-#### Logique entre Financements et écritures comptables
+### Logique entre Financements (`Funding`) et écritures comptables (`AccountingEntry`)
+
+La création d'un Funding est toujours une action conséquente de la création d'une opération comptable : émission d'une facture de vente (ou assimilée), validation d'une facture d'achat, transfert de fonds d'un compte à un autre, remboursement, ...
+
+L'opération comptable en question a généré des écritures.
+
+Le financement sert de "collecteur de paiements". 
 
 Lorsqu'on crée un funding, dans certains cas on créée des écritures pour indiquer qu'un montant est attendu (appels de fonds ou relevés périodiques)
 dans d'autres cas, on fait une action qui aboutira à des écritures (assimilables à des OD).
 
 Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réaliser.
+
+#### 4.1 Principe
+
+* **1 BankStatementLine = 1 AccountingEntry** (journal Banque)
+* Chaque écriture contient :
+
+  * Ligne Banque (550)
+  * Contrepartie (400, 440, 6xx, 7xx…)
+* Les Payments ventilent le lien vers les Fundings → lettrage partiel possible
+
+#### Cas particuliers
+
+* **Transferts internes & remboursements** :
+
+  * Funding spécifique créé
+  * Écriture générée seulement à la réception de l’extrait bancaire
+* **Mouvements inattendus (frais bancaires, charges)** :
+
+  * Funding `misc` créé lors de la réconciliation
+  * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
+
+#### Réconciliation
+
+* Réconcilier = savoir comment passer l’écriture comptable
+* Lettrage = rapprocher la ligne d’extrait de l’écriture attendue
+* Conditions de réconciliation validée :
+
+  * La somme des Payments liés à la ligne = montant de la ligne
+
