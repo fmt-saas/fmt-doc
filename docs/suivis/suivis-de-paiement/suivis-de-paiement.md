@@ -46,8 +46,8 @@ Chaque `BankStatementLine` est normalisée pour permettre une gestion uniforme.
 Un objet `Funding` représente un **flux de trésorerie attendu ou initié**, dans le cadre d’un financement, d’un virement, d’un remboursement ou d’un mouvement interne. Dans la grande majorité des cas, il s'agit d'un montant réclamé à un copropriétaire, dans le cadre d'un **appel de fonds**, d’un **état des dépenses** ou d’un **décompte de charges**. Il correspond à une attente comptable, liée à des écritures.
 
 !!! note "Distinction entre suivi et comptabilité"
-    💡 Le cumul des `Funding` relatifs aux appels de fonds ne reflète pas toujours la situation comptable réelle  : certains financements peuvent ne pas avoir encore été générés, annulés ou faire l'objet de situations particulières.
-    💡 Les funding et les paiements sont uniquement des moyens de suivre les paiements attendus et de générer des SEPA/QR codes, et sont dissociés des écritures comptables (mais liés via l'objet auquel ils se rapportent) permettent d'identifier à quel moment des écritures sont nécessaires ou peuvent être faites.
+    💡 Le cumul des `Funding` relatifs aux appels de fonds ne reflète pas toujours la situation comptable réelle  : certains financements peuvent ne pas avoir encore été générés, annulés ou faire l'objet de situations particulières.  
+    💡 Les funding et les paiements sont uniquement des moyens de suivre les paiements attendus et de générer des SEPA/QR codes, ils sont dissociés des écritures comptables (mais liés via l'objet auquel ils se rapportent), et permettent d'identifier à quel moment des écritures sont nécessaires ou peuvent être faites.
 
 
 
@@ -204,16 +204,18 @@ Cela permet d’identifier facilement les `Funding` en attente de traitement par
 
 Les `Payments` représentent les sommes **effectivement versées**.
 
-Un paiement (`Payment`) est toujours lié à un financement (`Funding`) et à une ligne d'extrait bancaire (`BankStateminrLine`).
+Un paiement (`Payment`) est toujours censé être lié à un financement (`Funding`) et à une ligne d'extrait bancaire (`BankStatementLine`).
 
-Note : Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas ou le montant versé correspond à plusieurs montants attendus), et donc à plusieurs financements.
+Notes : 
+* Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas ou le montant versé correspond à plusieurs montants attendus), et donc à plusieurs financements.
+* Un financement peut avoir été annulé (il peut donc y avoir des Payment orphelins).
 
 #### Règles
 
 * Toujours créé à partir d’une **BankStatementLine**
 * Toujours lié à un **Funding** (réconciliation auto ou manuelle)
 * Une ligne d’extrait peut être décomposée en **plusieurs Payments**
-* Inversement, plusieurs lignes d’extrait peuvent solder un même Funding
+* Inversement, plusieurs lignes d’extrait / paiements peuvent solder un même Funding
 
 #### Workflow
 
@@ -320,4 +322,3 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
   * Funding `misc` créé lors de la réconciliation
   * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
 
-#### 

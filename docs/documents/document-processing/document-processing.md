@@ -1,6 +1,25 @@
 # Document Processing
 
-Le processus d'importation d'un document dans FMT suit un flux complet allant du téléversement (**upload**), en passant par la **complétude**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
+
+
+Dans le logiciel, un **document** représente une **pièce comptable ou administrative**, abstraite de toute donnée binaire liée à un format spécifique (comme un fichier PDF ou une image). Le format de fichier (content-type) est traité séparément.
+
+Les pièces peuvent être générées selon deux modalités :
+
+1. **Par import**, via l’**upload** d’un fichier (reçu ou numérisé) ;
+2. **Par création manuelle**, à partir d’une saisie utilisateur, sans fichier source.
+
+Toutes les valeurs exploitées par le logiciel sont stockées dans le champ **`document_json`**, qui suit un **schéma de validation** propre au type de document (ex. : extrait bancaire, facture d'achat). Ce schéma garantit la **structure et la complétude des données**, qui sont considérées comme la **source de vérité** pour le traitement du document. Ce contrôle de validité est effectué automatiquement à l'import.
+
+Lorsqu’une pièce est encodée manuellement (par exemple une facture ou un extrait), un **document vide** est initialisé : il ne contient pas encore de `data` ni de fichier, seul le `document_json` est utilisé comme support de saisie.
+
+Pour l’**impression** d’un document, le système utilise en priorité le champ `data` s’il contient une ressource binaire exploitable (avec un content-type imprimable). En l’absence de donnée imprimable, un PDF est **généré dynamiquement** à partir du `document_json`, en s’appuyant sur un **rendu spécifique** au type de document.
+
+
+
+## Import
+
+Le processus d'importation d'un document suit un flux complet allant du téléversement (**upload**), en passant par la **complétude**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
 
 Ce fonctionnement repose principalement sur les entités `Document`, `DocumentProcess` et `DocumentType`, avec le support de services modulaires de validation et de transformation.
 
