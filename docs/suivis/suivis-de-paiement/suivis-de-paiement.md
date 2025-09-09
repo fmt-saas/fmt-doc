@@ -244,7 +244,7 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
   * note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
 
 * ce sont les Funding qui permettent de savoir comment réaliser les écritures
-  * -> faire en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
+  * => on fait en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
 
 * pour les mouvements non attendus (e.g. bank fees), on créée un Funding au moment de la réconciliation : funding_type = misc
     (une indication du compte à utiliser peut être fournie manuellement par l'utilisateur)
@@ -255,7 +255,7 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
     Ex. un copropriétaire qui paie un montant qui couvre plusieurs appels de fonds, ou qui fait un seul paiement couvrant provisions et appels de fonds.
     Dans ces situations, la ligne doit être décomposée en plusieurs paiements (pour être liée à plusieurs Funding).
 
-* Les actions suivantes sont possibles sur un extrait :
+* Les actions suivantes sont possibles sur un extrait :  
   * attempt_reconcile
   * post (si is_reconciled)
 
@@ -263,11 +263,11 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 
 #### Types d'encodage
 
-* Situation 1 : Une ligne avec une communication qui correspond à un match 
+* Situation 1 : Une ligne avec une communication qui correspond à un match (un financement en attente de paiement)
   
       -> création automatique du Payment (brouillon)
 
-* Situation 2 : Une ligne sans communication mais avec un montant attendu parmi les financement
+* Situation 2 : Une ligne sans communication mais avec un montant attendu parmi les financements
   
       -> sur base des infos de la ligne, un compte de destination peut être associé, il est alors utilisé pour filtrer les Fundings existants et permettre la sélection
 
@@ -278,11 +278,9 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 #### Cas particuliers
 
 * **Transferts internes & remboursements** :
-  
   * Funding spécifique créé
   * Écriture générée seulement à la réception de l’extrait bancaire
 
 * **Mouvements inattendus (frais bancaires, charges)** :
-  
   * Funding `misc` créé lors de la réconciliation
   * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
