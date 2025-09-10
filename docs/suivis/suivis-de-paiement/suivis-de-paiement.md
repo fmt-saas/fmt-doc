@@ -227,8 +227,8 @@ Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réa
 * **1 BankStatementLine = 1 AccountingEntry** (journal Banque)
 
 * Chaque écriture contient :
-  * Ligne Banque (550)
-  * Contrepartie (400, 440, 6xx, 7xx…)
+    * Ligne Banque (550)
+    * Contrepartie (400, 440, 6xx, 7xx…)
 
 * Les Payments ventilent le lien vers les Fundings → lettrage partiel possible
 
@@ -239,12 +239,12 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 * réconcilier signifie "savoir comment on va faire les écritures dans la comptabilité"
 
 * le lettrage correspond au rapprochement  entre une ligne d'extrait et une écriture comptable
-  * cela permet de retrouver quelle est la ligne d'écriture comptable qui est apurée par la ligne d'extrait
-  * 1 ligne d'extrait = 1 écriture comptable (avec 1 + nb paiements)  
-  * note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
+    * cela permet de retrouver quelle est la ligne d'écriture comptable qui est apurée par la ligne d'extrait
+    * 1 ligne d'extrait = 1 écriture comptable (avec 1 + nb paiements)  
+    * note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
 
 * ce sont les Funding qui permettent de savoir comment réaliser les écritures
-  * => on fait en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
+    * => on fait en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
 
 * pour les mouvements non attendus (e.g. bank fees), on créée un Funding au moment de la réconciliation : funding_type = misc
     (une indication du compte à utiliser peut être fournie manuellement par l'utilisateur)
@@ -256,8 +256,8 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
     Dans ces situations, la ligne doit être décomposée en plusieurs paiements (pour être liée à plusieurs Funding).
 
 * Les actions suivantes sont possibles sur un extrait :  
-  * attempt_reconcile
-  * post (si is_reconciled)
+    * attempt_reconcile
+    * post (si is_reconciled)
 
 * lorsqu'un extrait bancaire est "posted", on fait un refresh_status pour tous les fundings impactés
 
@@ -278,9 +278,9 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 #### Cas particuliers
 
 * **Transferts internes & remboursements** :
-  * Funding spécifique créé
-  * Écriture générée seulement à la réception de l’extrait bancaire
+    * Funding spécifique créé
+    * Écriture générée seulement à la réception de l’extrait bancaire
 
 * **Mouvements inattendus (frais bancaires, charges)** :
-  * Funding `misc` créé lors de la réconciliation
-  * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
+    * Funding `misc` créé lors de la réconciliation
+    * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
