@@ -2,7 +2,8 @@
 
 
 
-Dans le logiciel, un **document** représente une **pièce comptable ou administrative**, abstraite de toute donnée binaire liée à un format spécifique (comme un fichier PDF ou une image). Le format de fichier (content-type) est traité séparément.
+Dans le logiciel, un **document** représente une **pièce comptable ou administrative**, et est décorrélé de toute donnée binaire liée à un format spécifique (comme un fichier PDF ou une image).  
+Le format de fichier (content-type) et les éventuelles données binaires sont traités de manière distincte.
 
 Les pièces peuvent être générées selon deux modalités :
 

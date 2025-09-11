@@ -2,11 +2,9 @@
 
 Les comptes bancaires sont associés aux identités.
 
-
 Par défaut, une identité permet de préciser un compte bancaire principal. Mais une identité peut être associée à un nombre non limité de comptes bancaires supplémentaires.
 
 Pour faciliter l'encodage, il y a une synchro entre la liste de compte et le compte renseigné dans l'identité : de sorte que le compte de l'identité est toujours présent également dans la liste.
-
 
 La clé d'unicité des `BankAccount` est le numéro IBAN (il ne peut pas y avoir deux comptes avec le même IBAN / deux Identity ne peuvent jamais avoir un compte identique).
 
@@ -16,8 +14,6 @@ Les comptes bancaires référencés dans le cadre des copropriétés sont des en
 * **SuppliershipBankAccount** : associe un fournisseur (`Suppliership`) et un compte bancaire spécifique (le compte bancaire à utiliser est susceptible de changer en fonction du type de contrat ou selon le compte bancaire détenu par la copropriété - pour minimiser les frais et les délais). Cette entité utilise une autre table, synchronisée avec les compes ciblés.
 
 Quand on ajoute un fournisseur à une copropriété, par défaut, on ajoute le compte bancaire principal du fournisseur (`is_primary`) dans les `SuppliershipBankAccount`.
-
-
 
 ## Extraits bancaires (`BankStatement`)
 
@@ -123,7 +119,6 @@ L’import se fait en deux étapes :
    - Il est associé à un `DocumentProcess`,
    - Un fichier virtuel (XLSX) est généré pour la traçabilité.
 
-
 ### Traitement des lignes d’extrait (`BankStatementLine`)
 
 Chaque `BankStatement` contient une ou plusieurs lignes représentant les opérations bancaires (entrées/sorties de fonds). Chaque ligne peut être marquée comme :
@@ -142,7 +137,6 @@ Une ligne est considérée comme **réconciliée** lorsque :
 
 Les paiements créés automatiquement sont initialement en **statut "brouillon"** (`proforma`).
 
-
 ### Actions possibles
 
 #### Réconciliation manuelle ou automatique
@@ -160,8 +154,6 @@ L’action `post` d’un `BankStatement` :
 - **Valide** les paiements associés (changement d’état),
 - **Génère les écritures comptables** correspondantes à partir des paiements.
 
-
-
 ### Impact sur les financements (`Funding`)
 
 Lorsqu’un **paiement est publié** :
@@ -169,8 +161,6 @@ Lorsqu’un **paiement est publié** :
 - Le financement (`Funding`) auquel il est lié est **mis à jour** (changement d’état éventuel),
 - Une **tentative d’enregistrement automatique** du financement est lancée,
   - Ce processus vise à **générer les écritures comptables** liées à la pièce d’origine du financement (facture, échéancier, etc.).
-
-
 
 ## Transfert bancaire interne (`MoneyTransfer`)
 
@@ -187,13 +177,10 @@ Un `MoneyTransfer` associe :
 * un **montant** (`amount`)
 * une **date comptable** (`posting_date`), généralement la date du jour
 
-
-
-### Validation d'un transfert 
+### Validation d'un transfert
 
 Un transfert n'est valide (et autorisé) que s'il y a assez d'argent sur le compte d'origine.
 Le montant disponible est identifié sur base de la balance courante du compte comptable associé (montant au débit).
-
 
 ### Déroulement comptable en deux temps
 
@@ -211,8 +198,6 @@ CREDIT  512xxx - Compte bancaire source
 
 > Cela permet de réduire immédiatement la disponibilité du compte source, même si le virement n’est pas encore effectif. Le montant est alors considéré comme "en transit".
 
-
-
 #### **2. Réception du virement (encodage de l’extrait)**
 
 Quand le virement est visible sur l’extrait du compte de destination, une seconde écriture est générée :
@@ -227,30 +212,25 @@ CREDIT  58xxxx - Compte transitoire "Virements internes"
 
 > L’opération est alors **soldée**, le virement est visible des deux côtés.
 
+### Réconciliation et suivi
 
-
-###  Réconciliation et suivi
+#### Lien entre`Funding` et `MoneyTransfer`
 
 Le suivi des opérations de versement est réalisé avec des financements (Funding).
 
-Les deux `Funding` générées (demande et réception) peuvent être liées entre elles via un champ comme :
-
-* `mirror_misc_operation_id`
-* `transfer_pair_id`
-* ou via un objet `MoneyTransfer` central qui référence les deux.
+Les deux `Funding` générées (demande et réception) référencent chacun l'objet `MoneyTransfer` d'origine, auquel ils sont liés.
 
 Cela permet de suivre l’état de complétion (`is_complete`) et de vérifier que l'extrait bancaire a bien été comptabilisé.
 
-
+#### Lien entre`Funding` et `MoneyTransfer`
 
 ``` Bank Statement > Bank Statement Line > Funding > {accounting document} > AccountingEntry```
 
-accounting document : 
-* misc operation (OD)
-* purchase invoice
-* expense statement
-* fund request
+Pour référencer une pièce comptable, une entrée comptable utilise les deux champs: 
 
+`origin_object_class` and `origin_object_id`
+
+Ceci est utilisé quel que soit la pièce liée : misc operation (OD); purchase invoice; expense statement; fund request.
 
 ### Lien entre`Funding` et export SEPA
 
@@ -264,8 +244,6 @@ Dans ce cas :
 * le `Funding` permet de déclencher l’export SEPA (pain.001)
 * l’état du `Funding` évolue au fil du traitement (créé, exporté, exécuté)
 * l’objet `MoneyTransfer` devient la **traduction comptable du `Funding`**
-
-
 
 ### Calcul du solde disponible d’un compte bancaire
 
@@ -283,8 +261,6 @@ Ce champ calculé (`available_balance`) permet de :
 * déduire les Fundings en attente d'exécution
 * informer l'utilisateur du montant effectivement mobilisable
 
-
-
 ### Règles de validation avant transfert
 
 Avant validation (`posted`), les conditions suivantes sont vérifiées :
@@ -294,6 +270,3 @@ Avant validation (`posted`), les conditions suivantes sont vérifiées :
 * la date comptable doit être définie
 * le compte source doit disposer d’un solde suffisant (via `CurrentBalanceLine`)
 * un compte comptable de type `bank_transfer` doit être défini
-
-
-
