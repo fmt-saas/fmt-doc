@@ -16,11 +16,11 @@ nav:
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
-      - 'Encodage facture achat':
-          - 'Encodage facture achat': comptabilite/encodage-facture-achat/encodage-facture-achat.md
-          - 'Décompte copropriétaires': comptabilite/encodage-facture-achat/decompte-coproprietaires.md
-          - 'Ecritures comptables': comptabilite/encodage-facture-achat/ecritures-comptables.md
-          - 'Réconciliation CODA': comptabilite/encodage-facture-achat/reconciliation-coda.md
+      - 'Lettrage des écritures': comptabilite/lettrage.md
+      - 'Encodage pièces comptables':
+          - 'Factures d''achat': comptabilite/pieces-comptables/facture-achat.md
+          - 'Décompte copropriétaires': comptabilite/pieces-comptables/decompte-coproprietaires.md
+          - 'Appels de fonds': comptabilite/pieces-comptables/appel-de-fonds.md
   - 'Copropriété':
       - 'Création nouvelle Copropriété': copropriete/creation-nouvelle-copropriete.md
       - 'Configuration & paramétrage': copropriete/configuration.md

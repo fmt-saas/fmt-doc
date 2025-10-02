@@ -62,14 +62,15 @@ Plusieurs `Funding` peuvent être générés à partir d'une seule pièce.
 
 Le type d'un `Funding` est identité via le champ `funding_type`:
 
-| Type                | Description                                               |
-| ------------------- | --------------------------------------------------------- |
-| `installment`       | Financement pour le versement d'un acompte.               |
-| `reimbursement`     | Financement pour un remboursement.                        |
-| `transfer`          | Financement pour transfert interne entre comptes.         |
-| `invoice`           | Financement pour le paiement d'une facture.               |
-| `fund_request`      | Financement d'appel de fonds.                             |
-| `expense_statement` | Financement de régulation suite à un décompte périodique. |
+| Type                | Description                                                         |
+| ------------------- | ------------------------------------------------------------------- |
+| `installment`       | Financement pour le versement d'un acompte (a priori, pas utilisé). |
+| `reimbursement`     | Financement pour un remboursement.                                  |
+| `transfer`          | Financement pour transfert interne entre comptes.                   |
+| `invoice`           | Financement pour le paiement d'une facture d'achat.                 |
+| `fund_request`      | Financement d'appel de fonds.                                       |
+| `expense_statement` | Financement de régulation suite à un décompte périodique.           |
+| `misc`              | Financement lié à une OD.                                           |
 
 !!! note "Montants négatifs & Remboursements"
     Dans le cas d’un **montant négatif**, le `Funding` est tout de même créé (notamment pour visualiser le droit à remboursement), mais son traitement dépend du contexte : il peut être ignoré, soldé par compensation ou supprimé si aucun remboursement n’est demandé.
@@ -160,30 +161,38 @@ Lorsqu’un document de référence (appel, décompte…) est annulé :
 
 #### Génération d’un ordre bancaire (SEPA)
 
-Certains `Funding`, en particulier ceux correspondant à des montants **à rembourser** aux copropriétaires ou à des tiers, peuvent faire l'objet d'une **génération d’ordre bancaire**, matérialisée par un fichier **SEPA**.
+Lorsqu'il contient à la foi un compte d'origine et de destination explicites, un `Funding` peut faire l'objet d'une **génération d’ordre bancaire**, matérialisée par un fichier **SEPA**.
 
 Pour en assurer le suivi, un indicateur booléen `is_sent` est utilisé :
 
 - `false` : le financement n’a pas encore été transmis sous forme d’ordre bancaire
 - `true` : l’ordre de virement a été généré (et potentiellement transmis à la banque)
 
-Cela permet d’identifier facilement les `Funding` en attente de traitement par le gestionnaire financier (comptable, syndic, etc.) et d’éviter les doublons ou oublis lors des campagnes de remboursement.
+Ce flag permet d’identifier facilement les `Funding` en attente de traitement par le gestionnaire financier (comptable, syndic, etc.) et d’éviter les doublons ou oublis lors des campagnes de remboursement.
 
 ### Payment
 
-Les `Payments` représentent les sommes **effectivement versées**.
+Les `Payments` représentent les mouvements bancaires (sommes **effectivement versées**).
 
-Un paiement (`Payment`) est toujours censé être lié à un financement (`Funding`) et à une ligne d'extrait bancaire (`BankStatementLine`).
+Un paiement (`Payment`) est toujours lié à 
+
+* une ligne d'extrait bancaire (`BankStatementLine`)
+
+* un financement (`Funding`) (mais ce lien peut être rompu, voir ci-dessous)
+  
+  
+
+Un Payment représente la contre partie d'une écriture liée à une pièce comptable et correspond donc à une écriture dans le livre FIN (BANK).
 
 Notes : 
 
-* Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas ou le montant versé correspond à plusieurs montants attendus), et donc à plusieurs financements.
-* Un financement peut avoir été annulé (il peut donc y avoir des Payment orphelins).
+* Une ligne d'extrait peut être liée à plusieurs paiements (dans le cas où le montant versé est partiel ou correspond à plusieurs montants attendus), et donc à plusieurs financements.
+* Un financement peut avoir été annulé, et il peut donc y avoir des Payment orphelins.
 
 #### Règles
 
-* Toujours créé à partir d’une **BankStatementLine**
-* Toujours lié à un **Funding** (réconciliation auto ou manuelle)
+* un Payment est toujours créé à partir d’une **BankStatementLine**
+* un Payment est toujours lié à un **Funding** (réconciliation auto ou manuelle)
 * Une ligne d’extrait peut être décomposée en **plusieurs Payments**
 * Inversement, plusieurs lignes d’extrait / paiements peuvent solder un même Funding
 
@@ -215,20 +224,19 @@ La création d'un Funding est toujours une action conséquente de la création d
 
 L'opération comptable en question a généré des écritures.
 
-Le financement sert de "collecteur de paiements". 
+Le financement sert de "collecteur de paiements" pour apurer ces écritures.
+Dans d'autres cas, on fait une action qui aboutira à des écritures (assimilables à des OD).
 
-Lorsqu'on crée un funding, dans certains cas on créée des écritures pour indiquer qu'un montant est attendu (appels de fonds ou relevés périodiques)
-dans d'autres cas, on fait une action qui aboutira à des écritures (assimilables à des OD).
-
-Dans tous les cas, c'est le Financement qui renseigne sur les écritures à réaliser.
+Dans tous les cas, le Financement est en lien avec une pièce à laquelle correspond des écritures.
 
 #### Principe
 
 * **1 BankStatementLine = 1 AccountingEntry** (journal Banque)
 
 * Chaque écriture contient :
-    * Ligne Banque (550)
-    * Contrepartie (400, 440, 6xx, 7xx…)
+  
+  * Ligne Banque (550)
+  * Contrepartie (400, 440, 6xx, 7xx…)
 
 * Les Payments ventilent le lien vers les Fundings → lettrage partiel possible
 
@@ -239,12 +247,14 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 * réconcilier signifie "savoir comment on va faire les écritures dans la comptabilité"
 
 * le lettrage correspond au rapprochement  entre une ligne d'extrait et une écriture comptable
-    * cela permet de retrouver quelle est la ligne d'écriture comptable qui est apurée par la ligne d'extrait
-    * 1 ligne d'extrait = 1 écriture comptable (avec 1 + nb paiements)  
-    * note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
+  
+  * cela permet de retrouver quelle est la ligne d'écriture comptable qui est apurée par la ligne d'extrait
+  * 1 ligne d'extrait = 1 écriture comptable (avec 1 + nb paiements)  
+  * note : il peut y avoir plusieurs lignes d'extrait qui apurent une même ligne d'écriture comptable (via des funding différents).
 
 * ce sont les Funding qui permettent de savoir comment réaliser les écritures
-    * => on fait en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
+  
+  * => on fait en sorte qu'une ligne d'extrait soit toujours rattachée à un Funding
 
 * pour les mouvements non attendus (e.g. bank fees), on créée un Funding au moment de la réconciliation : funding_type = misc
     (une indication du compte à utiliser peut être fournie manuellement par l'utilisateur)
@@ -256,8 +266,9 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
     Dans ces situations, la ligne doit être décomposée en plusieurs paiements (pour être liée à plusieurs Funding).
 
 * Les actions suivantes sont possibles sur un extrait :  
-    * attempt_reconcile
-    * post (si is_reconciled)
+  
+  * attempt_reconcile
+  * post (si is_reconciled)
 
 * lorsqu'un extrait bancaire est "posted", on fait un refresh_status pour tous les fundings impactés
 
@@ -278,9 +289,11 @@ On fait en sorte de mettre le système dans une situation cohérente - où on a 
 #### Cas particuliers
 
 * **Transferts internes & remboursements** :
-    * Funding spécifique créé
-    * Écriture générée seulement à la réception de l’extrait bancaire
+  
+  * Funding spécifique créé
+  * Écriture générée seulement à la réception de l’extrait bancaire
 
 * **Mouvements inattendus (frais bancaires, charges)** :
-    * Funding `misc` créé lors de la réconciliation
-    * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
+  
+  * Funding `misc` créé lors de la réconciliation
+  * L’utilisateur indique le compte comptable (6/7) et la TVA si applicable
