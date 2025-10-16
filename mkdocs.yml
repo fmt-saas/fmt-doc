@@ -53,6 +53,10 @@ nav:
       - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
   - 'Imports':
       - 'Imports': imports/imports.md
+  - 'Permissions & Autorisations':
+      - 'Permissions & Autorisations': permissions-autorisations/permissions-autorisations.md
+
+      
 
 theme:
   name: material

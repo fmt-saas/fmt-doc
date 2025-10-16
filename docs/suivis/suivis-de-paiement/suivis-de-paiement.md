@@ -179,8 +179,6 @@ Un paiement (`Payment`) est toujours lié à
 * une ligne d'extrait bancaire (`BankStatementLine`)
 
 * un financement (`Funding`) (mais ce lien peut être rompu, voir ci-dessous)
-  
-  
 
 Un Payment représente la contre partie d'une écriture liée à une pièce comptable et correspond donc à une écriture dans le livre FIN (BANK).
 
