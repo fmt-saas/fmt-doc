@@ -51,8 +51,10 @@ nav:
       - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
       - 'Suivis de dossiers': suivis/suivis-de-dossiers/suivis-de-dossiers.md
       - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
-  - 'Imports':
-      - 'Imports': imports/imports.md
+  - 'Infra':
+      - 'Authentification': infra/authentification.md
+      - 'Synchronisation': infra/synchronisation.md      
+      - 'Imports': infra/imports/imports.md
   - 'Permissions & Autorisations':
       - 'Permissions & Autorisations': permissions-autorisations/permissions-autorisations.md
 
