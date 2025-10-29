@@ -49,7 +49,7 @@ Le système de **synchronisation** vise à harmoniser les données entre les ins
 
 Les **UpdatePolicy** déterminent la sensibilité et le comportement de synchro **par entité et par champ**.
 
-#### **UpdatePolicy**
+#### **SyncPolicy**
 
 | Champ            | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -66,7 +66,7 @@ Les **UpdatePolicy** déterminent la sensibilité et le comportement de synchro 
 | **`protected`** | Classe gérée sur l'instance Globale, mais pouvant faire l'objet de créations ou de modifications par les instances Locales. synchro | Synchro **supervisée** (via `UpdateRequest`) |
 | **`public`**    | (Classes non synchronisées)                                  |                                              |
 
-#### **UpdatePolicyLine**
+#### **SyncPolicyLine**
 
 | Champ              | Description                                             |
 | ------------------ | ------------------------------------------------------- |
@@ -86,6 +86,20 @@ Les **UpdatePolicy** déterminent la sensibilité et le comportement de synchro 
 
 
 ## 4. Types de synchronisation
+
+Dans tous les cas, les entités "Public", ne sont pas synchronisées (les éventuelles lignes sont sans effet).
+
+Lors d'une synchronisation, quelle que soit la direction, pour une **entité protected** :
+
+* tous les champs sont envoyés, à l'exception de ceux explicitement marqués comme "private"
+* les champs "public" seront acceptés sans supervision par l'instance de destination (mais toujours dans le cadre d'une UpdateRequest, jamais appliquée automatiquement)
+
+Lors d'une synchronisation, pour une **entité private** (en principe uniquement Global > Local):
+
+* tous les champs sont envoyés, à l'exception de ceux explicitement marqués comme "private"
+* l'instance de destination est automatiquement mise à jour sans supervision.
+
+### 
 
 ### 🔼 Synchro ascendante (Local → Global)
 
