@@ -31,6 +31,9 @@ nav:
       - 'Mutations / Transferts de propriété': copropriete/mutations-transferts-de-propriete.md
       - 'Syndic / Agence (`ManagingAgent`)': copropriete/syndic-agence-managingagent.md
       - 'Comptes bancaires': copropriete/comptes-bancaires.md
+      - 'Gouverance': 
+          - 'Assemblées': 
+              - 'Suivi & Prise de votes': copropriete/gouvernance/assemblee/suivi-et-prise-de-votes.md
   - 'Documents':
       - 'Aperçu': documents/documents.md
       - 'Organisation des documents':
