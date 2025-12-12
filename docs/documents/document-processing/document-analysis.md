@@ -9,7 +9,7 @@ L'analyse de contenu des documents est réalisée de deux manières complémenta
 
 Chaque document est associé à deux informations clés :
 
-- `content_type` : décrit le format ou type MIME du document source (ex: application/xml, application/pdf).
+- `content_type` : décrit le format ou type MIME du document source (ex: `application/xml`, `application/pdf`).
 - `Document Type` : identifie la nature du document (facture, relevé, contrat, etc.) et permet d'associer un **schéma JSON de référence** utilisé pour sa conversion et sa validation.
 
 Chaque document converti contient les métadonnées suivantes :
@@ -49,7 +49,6 @@ installation_number
                  │
                  └── has → meter_ean (électricité/gaz uniquement)
 ```
-
 
 
 

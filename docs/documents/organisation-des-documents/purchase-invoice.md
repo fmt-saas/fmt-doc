@@ -77,6 +77,9 @@ Le schéma utilisé pour les factures est le suivant :
                 "vat_id": {
                     "type": "string"
                 },
+                "company_id": {
+                    "type": "string"
+                },
                 "address": {
                     "type": "object",
                     "required": [
@@ -123,6 +126,9 @@ Le schéma utilisé pour les factures est le suivant :
                             "type": "null"
                         }
                     ]
+                },
+                "company_id": {
+                    "type": "string"
                 },
                 "customer_number": {
                     "type": "string"

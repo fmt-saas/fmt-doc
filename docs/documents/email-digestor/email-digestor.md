@@ -1,24 +1,133 @@
-## Email Digestor
+# Email Digestor
 
-L'**email digestor** est destiné à importer les documents reçus via une boite email.
+L’**Email Digestor** est un mécanisme d’**ingestion de documents entrants par email**.
+Il permet de connecter une ou plusieurs boîtes email au système afin de transformer automatiquement les **pièces jointes reçues** en **documents pris en charge par le processus standard de traitement**.
 
-Chaque copropriété dispose d’une adresse email dédiée, configurée pour être accessible en lecture via le protocole IMAP. Le digestor interroge régulièrement ces boîtes pour récupérer les nouveaux messages. À la réception d’un email, le système enregistre son contenu (expéditeur, destinataires, sujet, date de réception, corps du message) ainsi que les pièces jointes.
+L’email n’est pas considéré comme un objet métier en soi, mais comme un **canal d’entrée** vers le système documentaire.
 
-Chaque pièce jointe est convertie en entité `Document`, associée à l’email source via un champ `email_id`. 
+---
 
-Ces documents sont classés selon leur type (`invoice`, `quote`, `report`, etc.), soit automatiquement (sur base du contenu, du nom de fichier ou de règles heuristiques), soit manuellement via l’interface utilisateur.
+## Principe général
 
-Un document peut également être rattaché à un **dossier de gestion** (`CaseFile`), représentant un sinistre, une demande de devis, une inspection ou tout autre suivi structuré. Cette liaison permet de regrouper tous les documents, échanges et informations liés à une même problématique.
+Le fonctionnement de l’Email Digestor repose sur les éléments suivants :
 
-Chaque document possède un statut (`pending`, `processed`, `ignored`) qui détermine s’il a été pris en charge ou non. L’email source est automatiquement marqué comme **traité** (`processed`) dès que tous ses documents associés ont été eux-mêmes traités.
+* des **Mailboxes** configurées dans le système,
+* un accès en lecture aux messages entrants
+* l’extraction des pièces jointes autorisées
+* la création automatique de documents
+* le **démarrage immédiat d’un `DocumentProcess`** pour chaque document importé.
 
+👉 Une fois importé, un document issu d’un email est traité **exactement comme tout autre document importé**, sans logique spécifique liée à l’email.
 
+---
 
-Ce mécanisme permet :
+## Mailboxes
 
-- une centralisation des documents entrants sans manipulation manuelle,
-- un archivage des échanges par email,
-- une interface claire pour le traitement et la classification des documents,
-- et une intégration directe aux processus métiers (comptabilité, sinistres, prestations…).
+Une **Mailbox** représente un compte email configuré pour recevoir des documents entrants.
 
-Le digestor peut fonctionner en mode passif (consultation des boîtes existantes) ou actif (création et gestion d’adresses email spécifiques par ACP), selon les préférences et contraintes de l’organisation.
+Chaque Mailbox définit notamment :
+
+* le serveur mail  et ses paramètres d’accès,
+* le mode d’authentification,
+* l’état de validation du compte,
+* la date de dernière synchronisation.
+
+Une Mailbox validée peut être interrogée périodiquement afin de récupérer **uniquement les nouveaux messages** depuis la dernière synchronisation.
+
+---
+
+## Récupération des emails
+
+Lors de chaque synchronisation :
+
+1. Le système se connecte à la Mailbox (imap ou API)
+2. Les messages reçus depuis la dernière synchronisation sont récupérés.
+3. Chaque message est enregistré comme une entité `Email`, avec :
+
+   * l’expéditeur,
+   * les destinataires,
+   * le sujet,
+   * la date,
+   * le contenu du message.
+
+Les emails déjà connus (identifiés par leur `message_id`) sont ignorés afin d’éviter toute duplication.
+
+---
+
+## Traitement des pièces jointes
+
+Pour chaque email entrant :
+
+* seules les **pièces jointes autorisées** (PDF, documents bureautiques, feuilles de calcul, etc.) sont prises en compte,
+* chaque pièce jointe est convertie en une entité `Document`,
+* le document est lié à l’email source via le champ `email_id`.
+
+Les messages sans pièce jointe exploitable sont ignorés du point de vue documentaire.
+
+---
+
+## Démarrage automatique du traitement
+
+Dès la création d’un document issu d’une pièce jointe :
+
+* l’action `start_processing` est déclenchée automatiquement,
+* un `DocumentProcess` est créé et associé au document,
+* le document est marqué comme **document d’origine** (`is_origin = true`).
+
+À partir de ce moment, le document suit **le workflow standard du DocumentProcess** :
+
+> `created → assigned → completed → validated → integrated`
+
+Aucune logique spécifique à l’email n’intervient après cette étape.
+
+---
+
+## Lien entre email, document et traitement
+
+* L’email sert de **trace contextuelle** (source de réception).
+* Le document devient l’**objet central** du traitement.
+* Le `DocumentProcess` porte l’intégralité du workflow.
+
+Cette séparation garantit que :
+
+* le traitement documentaire reste cohérent,
+* les règles métier ne dépendent jamais du canal d’entrée,
+* un document importé par email est strictement équivalent à un document importé manuellement.
+
+---
+
+## Statut des emails et documents
+
+Les documents disposent de leur propre statut de suivi (`imported`, `pending`, `processed`, `ignored`), indépendamment du workflow du `DocumentProcess`.
+
+L’email source peut être considéré comme **traité** dès lors que :
+
+* toutes ses pièces jointes ont été importées,
+* et que les documents correspondants ont été pris en charge par un `DocumentProcess`.
+
+---
+
+## Cas d’usage couverts
+
+Ce mécanisme permet notamment :
+
+* la centralisation automatique des documents reçus par email,
+* la suppression des manipulations manuelles (téléchargement / upload),
+* la traçabilité des échanges entrants,
+* l’intégration directe dans les processus métier existants (comptabilité, juridique, gestion, etc.).
+
+---
+
+## Positionnement dans l’architecture
+
+L’Email Digestor :
+
+* **n’implémente aucune logique métier**,
+* **ne classe pas définitivement les documents**,
+* **ne valide rien**,
+* **ne décide pas du type final du document**.
+
+Il se limite volontairement à un rôle unique :
+
+> **injecter des documents entrants dans le système de traitement standard**.
+

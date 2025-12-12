@@ -1,105 +1,198 @@
-# Document Processing
+# Document processing
 
+Le *document processing* décrit l’ensemble des mécanismes qui permettent de **transformer un document entrant** (souvent externe) en un **objet métier exploitable**, validé et intégré dans les processus opérationnels du logiciel.
 
+Ce traitement est requis dès lors qu’un document :
 
-Dans le logiciel, un **document** représente une **pièce comptable ou administrative**, et est décorrélé de toute donnée binaire liée à un format spécifique (comme un fichier PDF ou une image).  
-Le format de fichier (content-type) et les éventuelles données binaires sont traités de manière distincte.
+* provient d’une source externe (upload, email, numérisation),
+* nécessite une analyse, une complétude ou une validation humaine,
+* ou implique plusieurs étapes avant son intégration définitive.
 
-Les pièces peuvent être générées selon deux modalités :
+---
 
-1. **Par import**, via l’**upload** d’un fichier (reçu ou numérisé) ;
-2. **Par création manuelle**, à partir d’une saisie utilisateur, sans fichier source.
+## Portée du document processing
 
-Toutes les valeurs exploitées par le logiciel sont stockées dans le champ **`document_json`**, qui suit un **schéma de validation** propre au type de document (ex. : extrait bancaire, facture d'achat). Ce schéma garantit la **structure et la complétude des données**, qui sont considérées comme la **source de vérité** pour le traitement du document. Ce contrôle de validité est effectué automatiquement à l'import.
+Tous les documents **ne passent pas** par un processus de traitement.
 
-Lorsqu’une pièce est encodée manuellement (par exemple une facture ou un extrait), un **document vide** est initialisé : il ne contient pas encore de `data` ni de fichier, seul le `document_json` est utilisé comme support de saisie.
+On distingue clairement deux cas :
 
-Pour l’**impression** d’un document, le système utilise en priorité le champ `data` s’il contient une ressource binaire exploitable (avec un content-type imprimable). En l’absence de donnée imprimable, un PDF est **généré dynamiquement** à partir du `document_json`, en s’appuyant sur un **rendu spécifique** au type de document.
+* **Documents générés nativement par l’application**
+  (ex. : facture générée après encodage manuel)
+  → pas de `DocumentProcess`, intégration directe.
 
+* **Documents importés depuis l’extérieur**
+  (ex. : factures fournisseurs, extraits bancaires, documents juridiques)
+  → traitement encadré par un `DocumentProcess`.
 
+Le document processing s’applique exclusivement à ce second cas.
 
-## Import
+---
 
-Le processus d'importation d'un document suit un flux complet allant du téléversement (**upload**), en passant par la **complétude**, la **validation**, jusqu'à son **intégration** dans la comptabilité.
+## Principe du `DocumentProcess`
 
-Ce fonctionnement repose principalement sur les entités `Document`, `DocumentProcess` et `DocumentType`, avec le support de services modulaires de validation et de transformation.
+Le `DocumentProcess` est une entité **transverse et générique**, indépendante du type d’objet métier cible.
 
+Son rôle est de :
 
-La plupart des pièces liées à des opérations comptables — qu’elles soient directes ou indirectes — utilisent le statut **`proforma`**, par analogie avec les factures de vente. Une pièce en `proforma` est publiée à titre informatif, mais n’a aucun effet réel en comptabilité. Elle peut néanmoins être visualisée, relue ou vérifiée par une personne autre que celle à l’origine de sa création, en vue d’une future validation.
+* porter le **workflow de traitement** d’un document importé,
+* centraliser les étapes, les validations et les alertes,
+* assurer la traçabilité du traitement, quel que soit le type de document.
 
-Lorsqu’un document nécessite un encodage plus complexe, pouvant impliquer plusieurs étapes ou plusieurs personnes (comme des extraits bancaires à réconcilier, ou des factures multisites), il peut être conservé temporairement avec le statut **`draft`**. Ce statut permet une édition plus libre, sans contrainte immédiate de complétude ou de validation.
+Un même workflow de `DocumentProcess` s’applique :
 
-Une fois qu’un élément est considéré comme prêt — c’est-à-dire qu’il a été vérifié, complété et, le cas échéant, réconcilié — il peut être soumis et passe alors au statut **`posted`**. À ce stade, il est rattaché aux entités cibles (par exemple, des écritures comptables ou des paiements), sans pour autant que ces entités soient validées indépendamment. Ce principe permet de centraliser la logique de validation uniquement au niveau de la pièce comptable, et non des objets dérivés.
+* à une facture fournisseur,
+* à un extrait bancaire,
+* à un document administratif,
+* ou à toute autre pièce importable.
 
+👉 Le **statut du document importé** est donc porté par le `DocumentProcess`, et non par l’objet métier final.
 
+---
+
+## Workflow du DocumentProcess
+
+Le workflow d’un `DocumentProcess` décrit le cycle de vie d’un document importé, c'est  à dire, l’ensemble des étapes nécessaires à la création
+d’une pièce métier sur base de l’import d’un document externe.
+
+Ce workflow est **strictement identique**, quel que soit l’objet cible
+(facture, extrait bancaire, document administratif, etc.).
 
 ### Étapes du workflow
 
-| Étape | Nom            | Description                                                  | Automatisable |
-| ----- | -------------- | ------------------------------------------------------------ | ------------- |
-| 1     | `Upload`       | Téléversement via `widgetUpload` avec déclenchement auto, récupération d métadonnées | ❌             |
-| 2     | `Completion`   | Enrichissement manuel ou automatique des champs requis       | ✅             |
-| 3     | `Validation`   | Contrôle métier par un gestionnaire                          | ✅             |
-| 4     | `Recording`    | Génération d’écritures comptables en brouillon               | ✅             |
-| 5     | `Confirmation` | Approbation finale (direction, juridique, etc.)              | ❌             |
-| 6     | `Intégration`  | Document intégré dans les processus opérationnels            | ✅             |
+| Étape | Statut | Description |
+|------:|--------|-------------|
+| 1 | `created` | Le document a été importé. Le `DocumentProcess` est créé, mais aucune action n’a encore été effectuée. |
+| 2 | `assigned` | Le document est pris en charge et assigné à un employé responsable du traitement. |
+| 3 | `completed` | Le document a été analysé, identifié et complété. Les données nécessaires sont disponibles. |
+| 4 | `validated` | Les règles métier ont été vérifiées avec succès. La validation est bloquante. |
+| 5 | `integrated` | Le document est intégré définitivement dans les processus opérationnels (ex. comptabilité). |
+
+Le statut courant du `DocumentProcess` constitue la **référence unique** pour déterminer
+l’état d’avancement du traitement d’un document importé.
 
 
+### Distinction entre workflow de traitement et statuts métier
 
-L'étape **`Completion`** se décompte en 3 parties:
+Le workflow du `DocumentProcess` ne doit pas être confondu avec les statuts métier
+des objets générés (par exemple `draft`, `proforma`, `posted` pour une facture d'achat).
 
-| Étape            | Objectif principal                                           |
-| ---------------- | ------------------------------------------------------------ |
-| [`identification`](document-identification.md) | Déterminer la **nature fonctionnelle** du document (type/subtype) |
-| [`extraction`](document-analysis.md)     | Extraire les **valeurs brutes** exploitables : reconnaissance via OCR / parsing si applicable |
-| [`matching`](document-analysis.md)       | Associer à des **entités internes** connues (fournisseur, copropriété, copropriétaire…) |
-| [`drafting`](document-analysis.md)       | Générer un **document temporaire** (proforma) à partir des données collectées (sans incidence comptable) |
+- Le `DocumentProcess` décrit **le traitement du document importé**.
+- Les statuts métier décrivent **l’état fonctionnel de l’objet cible**.
 
-
-
-**Note pour le lien entre Facture fournisseur et Supplier(ship):** 
-Un fournisseur peut avoir plusieurs comptes bancaires. Si un numéro de compte est trouvé sur la facture, et s'il correspond à un compte bancaire du fournisseur : on utilise celui-là. S'il n'est pas retrouvé automatiquement,  l'utilisateur peut sélectionner le compte (iban) à utiliser pour le paiement.
+Un objet métier peut exister sous un statut temporaire (`draft`, `proforma`) tout en étant associé à un `DocumentProcess` encore en cours de traitement.
 
 
+## Démarrage et responsabilité du processus
 
-### Entités principales
+Après l’import, le `DocumentProcess` est toujours pris en charge par un **acteur humain identifié**, généralement le `document_dispatch_officer`.
 
-#### `Document`
+Son rôle est de :
 
-Représente un fichier physique ou numérique importé dans le système. Il contient à la fois des métadonnées structurelles (fichier, type, sous-type) et des champs métiers enrichis.
+* vérifier ou corriger l’identification automatique,
+* assigner le document à la bonne personne si nécessaire,
+* initier la complétude du document.
 
-**Champs clés :**
+Le démarrage du traitement peut être :
 
-- `id`, `document_type`, `document_subtype`
-- `file`, `status`, `metadata`
-- Divers champs métiers selon le type (ex : `account_code`, `amount`, etc.)
+* **manuel**, après upload,
+* **semi-automatisé**, sur base de règles ou de reconnaissance.
 
-Les règles de complétude et de validation dépendent du type et sous-type du document.
+---
 
+## Étape de complétude (`Completion`)
 
-#### `DocumentProcess`
+La complétude correspond à la phase durant laquelle le document brut est transformé en un **document exploitable**, structuré et cohérent.
 
-Assure le suivi du cycle de vie technique et logique d’un document, en particulier dans le cadre d’un traitement d’importation.
+Elle se décompose en sous-étapes fonctionnelles distinctes :
 
-**Champs clés :**
+| Sous-étape     | Objectif                                               |
+| -------------- | ------------------------------------------------------ |
+| Identification | Déterminer la nature fonctionnelle du document         |
+| Extraction     | Extraire les valeurs exploitables (OCR, parsing, etc.) |
+| Matching       | Associer le document à des entités internes existantes |
+| Drafting       | Générer un document métier temporaire (*proforma*)     |
 
-- `id`, `document_id`, `type = "import"`
-- `status` : `pending`, `processing`, `success`, `error`
-- `has_warning`, `has_error`
-- `format` : format interprété du fichier
-- `report_html` : rapport détaillé (WYSIWYG) de l’extraction et de la validation
+Ces mécanismes sont détaillés dans les fichiers suivants :
 
+* `document-identification.md`
+* `document-analysis.md`
 
-#### `DocumentType` & `DocumentSubType`
+---
 
-Définissent la classification fonctionnelle du document. 
+## Documents temporaires et statuts métier
 
-Chaque sous-type permet de retrouver :
+Pendant le traitement, le document métier généré peut exister sous des formes **non intégrées** :
 
-- les champs attendus (ex : `account_code`, `vat_rate`, etc.)
-- les règles de validation associées
-- la stratégie de conversion (ex : vers des écritures comptables)
+* **`draft`**
+  Utilisé lorsque l’encodage est incomplet ou nécessite plusieurs itérations.
 
-### Lien avec la comptabilité
+* **`proforma`**
+  Document lisible et vérifiable, sans incidence comptable ou opérationnelle.
 
-Pour comprendre comment un `DocumentProcess` aboutit à la création d’une pièce et comment le JSON est synchronisé lors des modifications, se reporter à [Intégration comptable](document-integration.md).
+Ces statuts permettent :
+
+* la relecture,
+* la vérification croisée,
+* la correction avant validation finale.
+
+Ils ne produisent **aucun effet réel** tant que la validation n’est pas acquise.
+
+---
+
+## Validation et blocage du workflow
+
+La validation constitue une **étape bloquante** du document processing.
+
+Elle repose sur :
+
+* des règles définies par le `DocumentType`,
+* des contrôles métiers explicites,
+* des mécanismes d’alerte visibles sur l’objet cible.
+
+Tant que la validation échoue :
+
+* les étapes ultérieures sont inaccessibles,
+* le document reste signalé dans les listes de suivi.
+
+👉 Le fonctionnement détaillé de la validation est décrit dans
+[`document-validation.md`](document-validation.md).
+
+---
+
+## Intégration finale
+
+Une fois validé, le document peut être **intégré** :
+
+* génération définitive des écritures comptables,
+* synchronisation avec les entités cibles,
+* prise en compte dans les processus opérationnels.
+
+Cette étape marque la **fin du `DocumentProcess`**.
+
+Les mécanismes comptables et de synchronisation sont détaillés dans
+[`document-integration.md`](document-integration.md).
+
+---
+
+## Rôle des `DocumentType`
+
+Tout au long du processus, le `DocumentType` joue un rôle central :
+
+* il définit les champs attendus,
+* les règles de validation,
+* les stratégies d’intégration,
+* les comportements spécifiques du document.
+
+Le `DocumentProcess` reste générique ;
+le `DocumentType` apporte la **spécialisation métier**.
+
+---
+
+## En résumé
+
+* Le document processing concerne uniquement les documents **importés**.
+* Le `DocumentProcess` est le **support unique du workflow**.
+* Les objets métier peuvent exister sous forme temporaire (`draft`, `proforma`).
+* La validation est bloquante et pilotée par les règles métier.
+* L’intégration marque la fin du cycle de traitement.
+
