@@ -8,7 +8,7 @@ Ce traitement est requis dès lors qu’un document :
 * nécessite une analyse, une complétude ou une validation humaine,
 * ou implique plusieurs étapes avant son intégration définitive.
 
----
+
 
 ## Portée du document processing
 
@@ -26,7 +26,7 @@ On distingue clairement deux cas :
 
 Le document processing s’applique exclusivement à ce second cas.
 
----
+
 
 ## Principe du `DocumentProcess`
 
@@ -47,7 +47,7 @@ Un même workflow de `DocumentProcess` s’applique :
 
 👉 Le **statut du document importé** est donc porté par le `DocumentProcess`, et non par l’objet métier final.
 
----
+
 
 ## Workflow du DocumentProcess
 
@@ -82,6 +82,18 @@ des objets générés (par exemple `draft`, `proforma`, `posted` pour une factur
 Un objet métier peut exister sous un statut temporaire (`draft`, `proforma`) tout en étant associé à un `DocumentProcess` encore en cours de traitement.
 
 
+
+Tous les élément cibles qui font l'objet d'un suivi de traitement (DocumentProcess) ont des champs qui permettent de faire les liens : 
+
+* assigned_employee_id
+* alert
+* document_process_status 
+
+Ces champs sont synchronisés lors des actions réalisées par les utilisateurs.
+
+
+
+
 ## Démarrage et responsabilité du processus
 
 Après l’import, le `DocumentProcess` est toujours pris en charge par un **acteur humain identifié**, généralement le `document_dispatch_officer`.
@@ -97,7 +109,9 @@ Le démarrage du traitement peut être :
 * **manuel**, après upload,
 * **semi-automatisé**, sur base de règles ou de reconnaissance.
 
----
+
+
+
 
 ## Étape de complétude (`Completion`)
 
@@ -117,11 +131,11 @@ Ces mécanismes sont détaillés dans les fichiers suivants :
 * `document-identification.md`
 * `document-analysis.md`
 
----
+
 
 ## Documents temporaires et statuts métier
 
-Pendant le traitement, le document métier généré peut exister sous des formes **non intégrées** :
+Pendant le traitement, le document métier généré peut exister sous des formes **non intégrées** (pas encore dans la compta):
 
 * **`draft`**
   Utilisé lorsque l’encodage est incomplet ou nécessite plusieurs itérations.
@@ -137,7 +151,9 @@ Ces statuts permettent :
 
 Ils ne produisent **aucun effet réel** tant que la validation n’est pas acquise.
 
----
+
+
+
 
 ## Validation et blocage du workflow
 
@@ -157,7 +173,7 @@ Tant que la validation échoue :
 👉 Le fonctionnement détaillé de la validation est décrit dans
 [`document-validation.md`](document-validation.md).
 
----
+
 
 ## Intégration finale
 
@@ -172,7 +188,7 @@ Cette étape marque la **fin du `DocumentProcess`**.
 Les mécanismes comptables et de synchronisation sont détaillés dans
 [`document-integration.md`](document-integration.md).
 
----
+
 
 ## Rôle des `DocumentType`
 
@@ -185,14 +201,4 @@ Tout au long du processus, le `DocumentType` joue un rôle central :
 
 Le `DocumentProcess` reste générique ;
 le `DocumentType` apporte la **spécialisation métier**.
-
----
-
-## En résumé
-
-* Le document processing concerne uniquement les documents **importés**.
-* Le `DocumentProcess` est le **support unique du workflow**.
-* Les objets métier peuvent exister sous forme temporaire (`draft`, `proforma`).
-* La validation est bloquante et pilotée par les règles métier.
-* L’intégration marque la fin du cycle de traitement.
 
