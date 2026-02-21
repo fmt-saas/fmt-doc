@@ -35,7 +35,7 @@ Lors de la création d’un exercice, le système génère des séquences de num
 
 ## Principes généraux de gestion des exercices
 
-### Deux règles de simplification (récentes)
+### Deux règles de simplification
 
 Pour limiter la complexité, deux règles structurantes s’appliquent au moteur de workflow :
 
@@ -49,7 +49,7 @@ Ces deux règles rendent les transitions locales, testables, et évitent les eff
 
 ### Transitions strictement séquentielles
 
-Une règle supplémentaire s’applique désormais :
+Une règle supplémentaire s’applique également:
 
 > On ne passe **obligatoirement** que d’un état au suivant, **sans saut**, et **tous les états sont indispensables**.
 
@@ -179,7 +179,7 @@ Workflow opérationnel :
 
 ### Ouverture des périodes
 
-Par facilité (règle récente) :
+Par facilité:
 
 * lorsqu’une année comptable est ouverte (`FiscalYear.open`), **on ouvre directement toutes ses périodes** (`FiscalPeriod.open`).
 * cela permet d’affecter des pièces sur **n’importe quelle période** tant qu’elle n’est pas fermée (`closed`).
@@ -191,7 +191,7 @@ Règle d’imputation associée :
 
 ### Préclôture d’une période : point d’entrée du décompte
 
-Nouvelle règle structurante :
+Règle structurante :
 
 * **On ne peut pas clôturer directement une période : uniquement la préclôture est directe.**
 * Mettre une période en `preclosed` correspond à **générer un ExpenseStatement**.
