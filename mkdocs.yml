@@ -14,6 +14,7 @@ nav:
       - 'Balances comptables': comptabilite/balances-comptables.md
       - 'Clés de répartition': comptabilite/cles-de-repartition.md
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
+      - 'Pièces et écritures comptables': comptabilite/ecritures-comptables.mdpieces-et-ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
       - 'Lettrage des écritures': comptabilite/lettrage.md
