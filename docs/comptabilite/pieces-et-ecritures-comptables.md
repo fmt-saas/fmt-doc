@@ -1,6 +1,6 @@
 # Gestion des pièces comptables et des écritures
 
-## Logique d’annulation et de déblocage
+
 
 ## 1. Principe fondamental
 
@@ -16,9 +16,9 @@ Les pièces (factures, appels de fonds, OD, etc.) sont des objets métier qui d�
 
 
 
-# 2. Modèle conceptuel
+## 2. Modèle conceptuel
 
-## 2.1 Pièce comptable (Document métier)
+### 2.1 Pièce comptable (Document métier)
 
 Exemples :
 
@@ -26,13 +26,13 @@ Exemples :
 - FundCall
 - MiscOperation
 
-### États possibles
+#### États possibles
 
 - `proforma`
 - `posted`
 - `cancelled`
 
-### Champs structurants
+#### Champs structurants
 
 - `accounting_entry_id`
   → référence vers l’écriture active (unique)
@@ -41,11 +41,11 @@ Exemples :
 
 
 
-## 2.2 AccountingEntry
+### 2.2 AccountingEntry
 
 L’objet `AccountingEntry` matérialise une écriture comptable numérotée dans un journal.
 
-### Champs principaux
+#### Champs principaux
 
 - `id`
 - `document_id`
@@ -61,7 +61,7 @@ Chaque `AccountingEntry` contient une ou plusieurs `AccountingEntryLine`, équil
 
 
 
-# 3. Rôle du moteur comptable
+## 3. Rôle du moteur comptable
 
 Toutes les balances, décomptes, reports et clôtures utilisent exclusivement :
 
@@ -76,9 +76,9 @@ une écriture est soit active (`validated`), soit neutralisée (`reversed`).
 
 
 
-# 4. Cycle de vie d’une pièce
+## 4. Cycle de vie d’une pièce
 
-## 4.1 Proforma
+### 4.1 Proforma
 
 - Pas d’écriture comptable générée.
 - Modifiable librement.
@@ -93,7 +93,7 @@ Transition vers `posted` :
 
 
 
-## 4.2 Posted
+### 4.2 Posted
 
 - La pièce possède exactement une `AccountingEntry` active.
 - Cette écriture est `validated`.
@@ -109,7 +109,7 @@ Si document.status = 'posted'
 
 
 
-## 4.3 Cancelled
+### 4.3 Cancelled
 
 - La pièce a été annulée.
 - Aucune écriture active ne subsiste.
@@ -117,14 +117,14 @@ Si document.status = 'posted'
 
 
 
-# 5. Annulation d’une pièce
+## 5. Annulation d’une pièce
 
-## 5.1 Préconditions
+### 5.1 Préconditions
 
 - La pièce doit être `posted`.
 - Elle doit avoir une `AccountingEntry` active (`validated`).
 
-## 5.2 Processus technique
+### 5.2 Processus technique
 
 1. Récupération de `accounting_entry_id`.
 2. Appel de `AccountingEntry.do('cancel')`.
@@ -134,7 +134,7 @@ Si document.status = 'posted'
 6. Passage de la pièce en `cancelled`.
 7. Suppression de `accounting_entry_id` (plus d’écriture active).
 
-## 5.3 Résultat
+### 5.3 Résultat
 
 - Aucune écriture `validated`.
 - La séquence comptable reste continue.
@@ -143,15 +143,15 @@ Si document.status = 'posted'
 
 
 
-# 6. Déblocage d’une pièce
+## 6. Déblocage d’une pièce (unlock)
 
 Le déblocage permet de revenir à un état modifiable sans considérer la pièce comme définitivement annulée.
 
-## 6.1 Préconditions
+### 6.1 Préconditions
 
 - La pièce doit être `posted`.
 
-## 6.2 Processus technique
+### 6.2 Processus technique
 
 1. Récupération de `accounting_entry_id`.
 2. Exécution de `do('cancel')` sur l’écriture.
@@ -160,7 +160,7 @@ Le déblocage permet de revenir à un état modifiable sans considérer la pièc
 5. Conservation de l’historique via `accounting_entries_ids`.
 6. Passage de la pièce en `proforma`.
 
-## 6.3 Résultat
+### 6.3 Résultat
 
 - Aucune écriture active.
 - La pièce redevient modifiable.
@@ -168,7 +168,7 @@ Le déblocage permet de revenir à un état modifiable sans considérer la pièc
 
 
 
-# 7. Différence métier : Annulation vs Déblocage
+## 7. Différence métier : Annulation vs Déblocage
 
 | Action    | Écritures | Statut pièce | Modifiable |
 | --------- | --------- | ------------ | ---------- |
@@ -180,7 +180,7 @@ La différence est strictement métier.
 
 
 
-# 8. Correction d’une pièce
+## 8. Correction d’une pièce
 
 Pour corriger un montant ou une clé de répartition :
 
@@ -196,9 +196,9 @@ Résultat :
 
 
 
-# 9. Règles d’intégrité
+## 9. Règles d’intégrité
 
-## 9.1 Unicité d’écriture active
+### 9.1 Unicité d’écriture active
 
 Pour une pièce donnée :
 
@@ -207,12 +207,12 @@ Il ne peut exister qu’une seule AccountingEntry
 telle que status = 'validated'
 ```
 
-## 9.2 Reversal symétrique
+### 9.2 Reversal symétrique
 
 Si A.reversal_entry_id = B.id
 Alors B.reversal_entry_id = A.id
 
-## 9.3 Interdictions
+### 9.3 Interdictions
 
 - Une écriture `reversed` ne peut redevenir `validated`.
 - Une écriture ayant un `reversal_entry_id` ne peut être annulée à nouveau.
@@ -220,7 +220,7 @@ Alors B.reversal_entry_id = A.id
 
 
 
-# 10. Vues et contrôle des séquences
+## 10. Vues et contrôle des séquences
 
 Par défaut :
 
@@ -234,7 +234,7 @@ Optionnel :
 
 
 
-# 11. Conséquences architecturales
+## 11. Conséquences architecturales
 
 Cette approche garantit :
 
