@@ -1,4 +1,4 @@
-## workflow
+## Workflow Facture d'Achat
 
 Une facture d'achat suit le workflow standard pour les factures : `proforma`, `invoice`, `cancelled`
 
@@ -25,6 +25,102 @@ Lors de l'encodage, les informations suivantes doivent être complétées :
 | **Date d’échéance**   | Champ `<cbc:PaymentDueDate>`, indiqué sur la facture                                                                                        |
 | **Pièces jointes**    | Documents PDF, images ou annexes liées à la facture (`docs_ids`)                                                                            |
 | **Numéro de cachet**  | Assigné automatiquement à la validation (statut = `invoice`) ; non modifiable après validation                                              |
+
+
+
+## Distinction entre facture originale et ventilation analytique
+
+Dans le traitement des factures d’achat, il est essentiel de distinguer la **facture fournisseur originale** (document juridique et fiscal) de la **ventilation comptable interne** (projection analytique propre à l’ACP).
+
+La facture originale, qu’elle provienne de Peppol (UBL) ou d’un encodage manuel, constitue la référence intangible : ses montants HT, TVA, TVAC et ses groupes de taxe font foi et ne peuvent être modifiés.
+
+La ventilation analytique est une reconstruction interne destinée à répartir la dépense entre différents bénéficiaires (blocs, lots, locataires, usages spécifiques). Elle peut différer de la structure du document fournisseur, mais doit rester strictement cohérente avec ses totaux.
+
+Cette séparation garantit la conformité fiscale, la cohérence comptable et la traçabilité des montants répartis.
+
+
+### 1. Distinction structurelle
+
+#### Facture originale (juridique – figée)
+
+- Montants HT, TVA, TVAC
+- Groupes de taxe (par taux)
+- `PayableAmount`
+- Aucune modification autorisée
+
+> Si l’ACP est assujettie à la TVA, le champ `total_vat` (montant total de taxe) doit impérativement être renseigné et correspondre au montant de TVA figurant sur la facture fournisseur.
+> Ce montant constitue la base de la déclaration TVA et ne peut être altéré par la ventilation interne.
+
+#### Ventilation interne (analytique ACP)
+
+- Projection des montants vers blocs / lots / locataires
+- Peut être différente de la structure fournisseur
+- Doit rester strictement cohérente avec la facture
+
+
+### 2. Segmentation obligatoire par groupe de taxe
+
+- Construire les **TaxGroups** à partir de la facture (par taux).
+- Toute ligne ventilée appartient à **un seul groupe de taxe**.
+- Interdiction de mélanger plusieurs taux dans une même ligne ventilée.
+
+
+### 3. Règles de ventilation
+
+- La ventilation se fait **uniquement en HT**.
+- La TVA est **répartie proportionnellement** au HT dans chaque groupe.
+- Interdiction de recalculer la TVA via `rate × base`.
+- Ajustement du dernier centime **dans chaque groupe** pour garantir :
+
+```
+Σ TVA ventilée (groupe) = TVA groupe facture
+```
+
+
+### 4. Gestion des écarts
+
+#### Tolérances
+
+- Cohérence facture : ≤ 0.01 €
+- Cohérence ventilation : ≤ 0.05 € (paramétrable)
+
+#### En cas de delta acceptable
+
+- Générer automatiquement une écriture :
+  - Compte 4991 – rounding_adjustment
+  - Liée à la facture
+  - Incluse dans la répartition
+
+#### Si delta > tolérance
+
+- Blocage avec erreur
+
+
+### 5. TVA déductible (cas spécifiques)
+
+- La déductibilité s’applique **après ventilation**.
+- Jamais de recalcul de TVA.
+- On utilise la TVA ventilée réelle comme base fiscale.
+- Si l’ACP est assujettie (totalement ou partiellement), les montants globaux `total_ht` et `total_vat` doivent rester strictement conformes à la facture fournisseur afin de garantir la fiabilité de la déclaration TVA.
+
+
+### 6. Invariants à garantir
+
+À tout moment :
+
+```
+Σ HT ventilé = HT facture
+Σ TVA ventilée = TVA facture
+Σ TVAC ventilé = TVAC facture
+Σ écritures comptables = PayableAmount
+```
+
+En cas d’ACP assujettie :
+
+```
+total_vat facture = montant de TVA déclaré
+```
+
 
 ## Découpage de la facture en lignes d’imputation (`InvoiceLine`)
 
@@ -104,6 +200,8 @@ Lors de la création d’un fonds de réserve, trois comptes comptables sont gé
    
    > Compte technique servant à enregistrer la sortie du fonds lors de son usage effectif
 
+
+
 ## Paiement
 
 Il y a 3 méthodes de paiement possibles: 
@@ -135,6 +233,8 @@ possibilité de payer en plusieurs fois (Funding)
 
 Rappel: le fonds de roulement (100) est un passif qui ne peut être alimenté que par des participations des copropriétaires (comptes copropriétaires) et n'est jamais directement utilisé (c'est le compte bancaire qui l'est).
 
+
+
 ### Utilisation de fonds de réserve
 
 | Libellé                         | Débit                                  | Crédit                           |
@@ -142,11 +242,15 @@ Rappel: le fonds de roulement (100) est un passif qui ne peut être alimenté qu
 | Utilisation du fonds de réserve | 68160xx1 – Utilisation du fonds : 500€ |                                  |
 | Affectation du fonds de réserve |                                        | 160xx – Fonds de réserve : 500 € |
 
+
+
 ## Informations complémentaires
 
 Certaines informations additionnelles permettent de paramétrer le comportement du logiciel
 
 * Paiement par domiciliation : si coché au niveau de la facture de vente, le paiement ne doit pas être fait à la main, l'information sera répercutée sur le Funding correspondant, et l'ordre de paiement (SEPA) ne pourra pas être généré (un extrait bancaire avec le mouvement sera reçu).
+
+
 
 ## Ecritures d'imputation
 
