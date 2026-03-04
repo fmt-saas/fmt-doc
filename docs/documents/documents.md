@@ -89,7 +89,7 @@ Ces documents ne sont pas considérés comme des documents d’origine (`is_orig
 
 
 
-# Affichage des références comptables dans les documents
+## Affichage des références comptables dans les documents
 
 Lorsqu’un document est **rattaché à une pièce comptable**, il est souvent nécessaire de pouvoir identifier immédiatement **l’écriture comptable interne** qui lui correspond.
 
@@ -103,7 +103,7 @@ Pour faciliter cette identification, le système ajoute automatiquement **une su
 
 Cette surimpression contient les informations principales issues de la comptabilisation de la pièce.
 
-## Principe
+### Principe
 
 La logique est implémentée au niveau de la **route de téléchargement des documents** (`documents_document`).
 
@@ -125,9 +125,7 @@ Exemple :
 2025-03-12 | PI-2025-0043
 ```
 
-### Pourquoi cette logique est placée dans `document.php`
-
-Le traitement est effectué **au point central de téléchargement des documents**.
+Le traitement est effectué **au point central de téléchargement des documents**, dans le controller `documents_document`
 
 Cela garantit que :
 
@@ -137,7 +135,7 @@ Cela garantit que :
 
 
 
-## Types de documents concernés
+### Types de documents concernés
 
 L’overlay est actuellement appliqué uniquement lorsque le document est lié à certaines entités comptables.
 
@@ -156,7 +154,7 @@ Notes :
 
 
 
-## Implémentation technique
+### Implémentation technique
 
 Lorsque l’overlay doit être appliqué, la route de téléchargement appelle l’action :
 
