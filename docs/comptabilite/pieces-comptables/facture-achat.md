@@ -1,4 +1,4 @@
-## Workflow Facture d'Achat
+## Factures d'Achat
 
 Une facture d'achat suit le workflow standard pour les factures : `proforma`, `invoice`, `cancelled`
 
@@ -25,6 +25,60 @@ Lors de l'encodage, les informations suivantes doivent être complétées :
 | **Date d’échéance**   | Champ `<cbc:PaymentDueDate>`, indiqué sur la facture                                                                                        |
 | **Pièces jointes**    | Documents PDF, images ou annexes liées à la facture (`docs_ids`)                                                                            |
 | **Numéro de cachet**  | Assigné automatiquement à la validation (statut = `invoice`) ; non modifiable après validation                                              |
+
+
+
+## Gestion du numéro de TVA sur les factures fournisseurs
+
+Le système de gestion des factures fournisseurs prend en compte les différentes situations légales existant en Belgique concernant le statut TVA des fournisseurs. Il y a un panel varié de situations possibles selon le régime TVA du fournisseur de de l'ACP : B2B, B2C, C2B, C2C.
+
+### Distinction entre numéro d’entreprise et numéro de TVA
+
+Toute entité juridique (société, ASBL, etc.) dispose d’un **numéro d’entreprise** attribué par la Banque-Carrefour des Entreprises (BCE).
+Ce numéro identifie l’entité sur le plan administratif et juridique.
+
+Le **numéro de TVA** correspond à l’activation de ce numéro d’entreprise auprès de l’administration TVA.
+Il est généralement exprimé sous la forme :
+
+```
+BE0xxx.xxx.xxx
+```
+
+Toutes les entreprises ne sont pas assujetties à la TVA. Il est donc possible qu’une entreprise dispose d’un numéro d’entreprise sans disposer d’un numéro de TVA.
+
+### Types de fournisseurs pris en charge
+
+Le système prend en charge plusieurs types de fournisseurs, correspondant aux différentes situations rencontrées en pratique.
+
+| Type de fournisseur                     | Statut TVA         | Numéro de TVA présent sur la facture |
+| --------------------------------------- | ------------------ | ------------------------------------ |
+| Entreprise assujettie à la TVA          | TVA appliquée      | Oui                                  |
+| Entreprise sous régime de franchise TVA | TVA non facturée   | Oui                                  |
+| Entreprise non assujettie à la TVA      | TVA non applicable | Non                                  |
+| Particulier (syndic)                    | Hors TVA           | Non                                  |
+
+Dans les cas où le fournisseur n’est pas assujetti à la TVA, la facture peut ne pas comporter de numéro de TVA. Le système accepte donc les factures fournisseurs **avec ou sans numéro de TVA**.
+
+### Conséquence sur les contrôles de validation
+
+Lors de l’encodage ou de l’import d’une facture fournisseur, le système applique les règles suivantes :
+
+- le **numéro de TVA fournisseur est optionnel** ;
+- les factures peuvent être enregistrées même si aucun numéro de TVA n’est renseigné ;
+- la présence ou l’absence de TVA sur la facture dépend des informations fournies par le document et du statut du fournisseur.
+
+Cette flexibilité permet de gérer correctement les factures provenant :
+
+- d’entreprises assujetties à la TVA,
+- d’entreprises bénéficiant du régime de franchise,
+- d’entreprises ou d’organisations non assujetties,
+- de particuliers.
+
+### Compatibilité avec la facturation électronique (PEPPOL)
+
+Le système est compatible avec les obligations de facturation électronique qui concernent principalement les transactions **entre entités assujetties à la TVA (B2B)**.
+
+Toutefois, dans certains contextes — notamment celui des associations de copropriétaires (ACP), généralement non assujetties à la TVA — les factures fournisseurs peuvent continuer à être reçues sous forme traditionnelle (PDF ou papier). Le système permet donc la gestion simultanée de factures structurées et de factures non structurées.
 
 
 
