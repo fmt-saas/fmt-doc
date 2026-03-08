@@ -1,24 +1,28 @@
 # Balances et états comptables
 
-
-
 # 1. Vue d’ensemble
 
 Le moteur comptable repose sur une séparation stricte entre :
 
 1. **La vérité comptable**
    → `AccountingEntry` et `AccountingEntryLine`
-2. **Les points de contrôle légaux**
-   → `ClosingBalance`
-3. **La projection cumulative optimisée**
+
+2. **Les projections cumulatives optimisées**
    → `AccountBalanceChange`
+
+3. **Les points de contrôle comptables**
+   → `ClosingBalance` et `OpeningBalance`
 
 Cette séparation permet :
 
-- Une traçabilité complète des écritures
-- Une clôture annuelle juridiquement fiable
-- Des calculs de balances rapides et scalables
-- Une reconstruction possible en cas d’incohérence
+* Une traçabilité complète des écritures
+* Une clôture annuelle juridiquement fiable
+* Des calculs de balances rapides et scalables
+* Une reconstruction possible en cas d’incohérence
+* Une représentation claire du **bilan de clôture et du bilan d’ouverture**
+
+Les balances (`ClosingBalance` et `OpeningBalance`) sont des **instantanés comptables**.
+Elles ne constituent pas la source de vérité comptable mais servent de **points d’ancrage stables** dans l’historique comptable.
 
 
 
@@ -30,12 +34,13 @@ Les écritures validées (`status = validated`) constituent la seule réalité c
 
 Caractéristiques :
 
-- Une écriture validée n’est jamais modifiée.
-- Toute correction passe par :
-  - création d’une écriture inverse,
-  - validation,
-  - passage des deux écritures en `reversed`.
-- Seules les écritures validées sont prises en compte dans les calculs comptables.
+* Une écriture validée n’est jamais modifiée.
+* Toute correction passe par :
+
+  * création d’une écriture inverse,
+  * validation,
+  * passage des deux écritures en `reversed`.
+* Seules les écritures validées sont prises en compte dans les calculs comptables.
 
 La vérité comptable est donc définie par :
 
@@ -43,37 +48,19 @@ La vérité comptable est donc définie par :
 SUM(AccountingEntryLine WHERE entry.status = 'validated')
 ```
 
-
-
-## 2.2 ClosingBalance (Checkpoint légal)
-
-Un historique figé est conservé via des **balances ** , qui sont des instantanés de la situation comptable à un moment donné.
-
-- Les **Balances (annuelle ou périodique)**  sont calculées à une date donnée, elles fournissent un état figé des comptes et servent notamment à la validation des comptes lors d’une clôture de période ou d’exercice.
-
-`ClosingBalance` représente :
-
-- Un instantané figé à la fin d’un exercice
-- Un point d’ancrage juridique
-- Un point de reconstruction technique
-
-Propriétés :
-
-- Immutable après validation
-- Correspond exactement aux écritures validées jusqu’à la date de clôture
-- Sert de base pour les reports et les rebuild partiels
+Les écritures constituent le **journal comptable complet** et permettent la reconstitution intégrale de l’historique financier.
 
 
 
-## 2.3 AccountBalanceChange (Projection cumulative)
+## 2.2 AccountBalanceChange (Projection cumulative)
 
 `AccountBalanceChange` est une série temporelle cumulative.
 
 Chaque ligne représente :
 
-- L’état cumulé d’un compte
-- À une date donnée
-- Après application de toutes les écritures validées jusqu’à cette date
+* l’état cumulé d’un compte
+* à une date donnée
+* après application de toutes les écritures validées jusqu’à cette date
 
 Structure logique :
 
@@ -84,6 +71,79 @@ credit_balance
 ```
 
 Il n’y a **qu’une seule ligne par compte et par date de mouvement**.
+
+Cette table permet de calculer très rapidement :
+
+* balances
+* variations sur période
+* états comptables
+
+sans avoir à parcourir toutes les écritures.
+
+
+
+## 2.3 ClosingBalance (Snapshot de clôture)
+
+`ClosingBalance` représente un **instantané figé de la comptabilité à la fin d’un exercice ou d’une période**.
+
+Elle est générée automatiquement lors de la clôture d’un exercice.
+
+Propriétés :
+
+* instantané figé des soldes de tous les comptes
+* point d’ancrage juridique pour les comptes annuels
+* point d’ancrage technique pour les reconstructions
+
+Une `ClosingBalance` correspond exactement à l’état comptable résultant de toutes les écritures validées jusqu’à la date de clôture.
+
+Elle contient :
+
+```
+debit
+credit
+debit_balance
+credit_balance
+```
+
+pour chaque compte.
+
+Une fois validée, une `ClosingBalance` est **immuable**.
+
+
+
+## 2.4 OpeningBalance (Snapshot d’ouverture)
+
+`OpeningBalance` représente l’état des comptes **au début d’un exercice comptable**.
+
+Elle correspond au **bilan d’ouverture de l’exercice**.
+
+Dans le système, une `OpeningBalance` est générée automatiquement à partir de la `ClosingBalance` de l’exercice précédent.
+
+Relation logique :
+
+```
+OpeningBalance(Y+1) = ClosingBalance(Y)
+```
+
+Cette balance permet :
+
+* d’afficher le **bilan d’ouverture**
+* d’avoir un point d’ancrage pour les états comptables
+* de maintenir la continuité comptable entre exercices
+
+Contrairement aux systèmes comptables classiques, le moteur **ne génère pas d’écritures de report dans les journaux**.
+
+La continuité comptable est assurée par les snapshots :
+
+```
+ClosingBalance → OpeningBalance
+```
+
+Cela évite :
+
+* la duplication artificielle d’écritures
+* les déséquilibres possibles dans les journaux
+* les erreurs de report.
 
 
 
@@ -97,7 +157,7 @@ Pour un compte donné :
 balance(t_n) = balance(t_n-1) + delta(t_n)
 ```
 
-Où :
+où :
 
 ```
 delta(t_n) = somme des lignes d’écriture validées à la date t_n
@@ -105,7 +165,7 @@ delta(t_n) = somme des lignes d’écriture validées à la date t_n
 
 Si aucune écriture ne touche le compte à une date donnée, aucune ligne n’est créée.
 
-La table reste sparse (clairsemée).
+La table reste **sparse** (clairsemée).
 
 
 
@@ -116,16 +176,17 @@ Lorsqu’une `AccountingEntry` passe en `validated` :
 1. Les `AccountingEntryLine` sont parcourues.
 2. Les lignes non encore postées (`is_posted = false`) sont agrégées par compte.
 3. Pour chaque compte :
-   - On récupère la balance précédente (< date).
-   - On ajoute le delta.
-   - On met à jour ou crée la ligne `AccountBalanceChange` à la date de l’écriture.
-4. On ajuste toutes les lignes ultérieures en cas de backdating.
+
+   * on récupère la balance précédente (< date)
+   * on ajoute le delta
+   * on met à jour ou crée la ligne `AccountBalanceChange`
+4. Les lignes ultérieures sont ajustées en cas de backdating.
 5. Les lignes sont marquées `is_posted = true`.
 
-Important :
+Contraintes importantes :
 
-- Une ligne postée ne doit jamais être repostée.
-- Une ligne postée ne doit jamais redevenir non postée.
+* une ligne postée ne doit jamais être repostée
+* une ligne postée ne doit jamais redevenir non postée
 
 
 
@@ -133,16 +194,15 @@ Important :
 
 Annulation d’une écriture validée :
 
-1. Création d’une écriture inverse.
-2. Validation de cette écriture inverse.
-3. Les deux écritures passent en `reversed`.
+1. création d’une écriture inverse
+2. validation de cette écriture inverse
+3. passage des deux écritures en `reversed`
 
 Effet :
 
-- L’écriture inverse neutralise l’originale.
-- Aucune suppression.
-- Aucune modification de projection existante.
-- Les lignes restent `is_posted = true`.
+* l’écriture inverse neutralise l’écriture initiale
+* aucune suppression d’écriture
+* aucune modification de projection existante
 
 La projection reflète donc :
 
@@ -150,7 +210,7 @@ La projection reflète donc :
 SUM(lignes postées)
 ```
 
-Et non :
+et non :
 
 ```
 SUM(lignes WHERE status='validated')
@@ -158,11 +218,9 @@ SUM(lignes WHERE status='validated')
 
 
 
-# 4. Calcul des balances sur une période
+# 4. Calcul des balances et états comptables
 
 Pour une plage `[date_from, date_to]` :
-
-Pour chaque compte :
 
 ```
 balance_end   = dernier AccountBalanceChange ≤ date_to
@@ -170,19 +228,81 @@ balance_start = dernier AccountBalanceChange < date_from
 delta         = balance_end - balance_start
 ```
 
-Cela permet :
+Cela permet de produire :
 
-- Balance à une date arbitraire
-- Variation sur période
-- États comptables (bilan, balance générale, etc.)
+* balances
+* bilan
+* compte de résultat
+* variation des comptes
 
-Aucune lecture directe des `AccountingEntryLine` n’est nécessaire.
+sans lecture directe des `AccountingEntryLine`.
 
 
 
-# 5. Contraintes techniques
+# 5. Logique de clôture d’un exercice
 
-## 5.1 Indexation obligatoire
+La clôture d’un exercice produit deux éléments :
+
+1. un **snapshot de clôture**
+2. un **snapshot d’ouverture pour l’exercice suivant**
+
+Processus :
+
+### Étape 1 — génération du ClosingBalance
+
+Lors de la clôture d’un exercice :
+
+```
+ClosingBalance(Y)
+```
+
+est générée à partir des écritures de l’exercice.
+
+Elle capture l’état final des comptes.
+
+
+
+### Étape 2 — génération de l’OpeningBalance
+
+Après la clôture :
+
+```
+OpeningBalance(Y+1)
+```
+
+est générée automatiquement.
+
+Cette balance copie les lignes de la `ClosingBalance` précédente.
+
+Relation :
+
+```
+ClosingBalance(Y)
+        ↓
+OpeningBalance(Y+1)
+```
+
+Cela garantit la continuité comptable.
+
+
+
+### Cas du premier exercice
+
+Pour le premier exercice d’une copropriété, une `OpeningBalance` peut être créée manuellement.
+
+Elle correspond à l’**OD d’ouverture** initiale.
+²
+Les exercices suivants utilisent automatiquement la logique :
+
+```
+ClosingBalance → OpeningBalance
+```
+
+
+
+# 6. Contraintes techniques
+
+## 6.1 Indexation obligatoire
 
 La table `AccountBalanceChange` doit être indexée sur :
 
@@ -192,13 +312,13 @@ La table `AccountBalanceChange` doit être indexée sur :
 
 Cela garantit :
 
-- Recherche rapide du dernier solde
-- Range scan efficace
-- Scalabilité
+* recherche rapide du dernier solde
+* range scan efficace
+* scalabilité
 
 
 
-## 5.2 Unicité
+## 6.2 Unicité
 
 L’unicité logique :
 
@@ -208,23 +328,23 @@ L’unicité logique :
 
 est garantie par l’ORM.
 
-La base ne porte qu’un index composite (pas une contrainte UNIQUE SQL).
+La base ne porte qu’un index composite.
 
 
 
-## 5.3 Transactions
+## 6.3 Transactions
 
 Toutes les mises à jour doivent être transactionnelles :
 
-- Validation d’écriture
-- Mise à jour projection
-- Marquage `is_posted`
+* validation d’écriture
+* mise à jour projection
+* marquage `is_posted`
 
 Sinon incohérence possible.
 
 
 
-# 6. Risque d’erreur cumulative
+# 7. Risque d’erreur cumulative
 
 Une erreur dans `AccountBalanceChange` se propage :
 
@@ -236,36 +356,36 @@ Si balance(t_k) est faux
 
 Mais :
 
-- La vérité comptable reste intacte.
-- La projection est reconstructible.
+* la vérité comptable reste intacte
+* la projection est reconstructible.
 
 
 
-# 7. Rebuild du moteur
+# 8. Rebuild du moteur
 
-## 7.1 Rebuild complet
+## 8.1 Rebuild complet
 
-1. Supprimer tous les `AccountBalanceChange`.
-2. Rejouer toutes les écritures validées.
-
-
-
-## 7.2 Rebuild partiel basé sur ClosingBalance (recommandé)
-
-1. Trouver le dernier `ClosingBalance`.
-2. Supprimer les projections postérieures.
-3. Injecter la balance de clôture comme point d’ancrage.
-4. Rejouer uniquement les écritures validées postérieures.
-
-Optimisation majeure pour gros historiques.
+1. supprimer tous les `AccountBalanceChange`
+2. rejouer toutes les écritures validées
 
 
 
-# 8. Vérification d’intégrité
+## 8.2 Rebuild partiel basé sur ClosingBalance (recommandé)
 
-Deux niveaux :
+1. trouver le dernier `ClosingBalance`
+2. supprimer les projections postérieures
+3. injecter la balance de clôture comme point d’ancrage
+4. rejouer uniquement les écritures validées postérieures
 
-### 8.1 Vérification à la clôture
+Cette stratégie permet un **rebuild rapide même avec un historique important**.
+
+
+
+# 9. Vérification d’intégrité
+
+Deux niveaux de contrôle existent.
+
+### Vérification à la clôture
 
 Comparer :
 
@@ -273,24 +393,32 @@ Comparer :
 ClosingBalance == AccountBalanceChange à la date de clôture
 ```
 
-### 8.2 Vérification périodique
-
-Recalcul partiel via SUM des lignes validées
-et comparaison avec projection.
+Cela garantit la cohérence entre projection et snapshot.
 
 
 
-# 9. Invariants du système
+### Vérification périodique
 
-Le système repose sur les invariants suivants :
+Un recalcul partiel peut être effectué en comparant :
 
-1. Une écriture validée n’est jamais modifiée.
-2. Toute correction passe par une écriture inverse.
-3. Une ligne postée n’est jamais repostée.
-4. Une ligne postée ne redevient jamais non postée.
-5. ClosingBalance est immuable.
-6. AccountBalanceChange est reconstructible.
-7. Les écritures reversed n’ont plus d’effet actif.
+```
+SUM(AccountingEntryLine)
+```
+
+avec les projections `AccountBalanceChange`.
 
 
+
+# 10. Invariants du système
+
+Le moteur repose sur les invariants suivants :
+
+1. une écriture validée n’est jamais modifiée
+2. toute correction passe par une écriture inverse
+3. une ligne postée n’est jamais repostée
+4. une ligne postée ne redevient jamais non postée
+5. `ClosingBalance` est immuable
+6. `OpeningBalance` correspond toujours à la `ClosingBalance` précédente
+7. `AccountBalanceChange` est reconstructible
+8. les écritures `reversed` n’ont plus d’effet actif
 
