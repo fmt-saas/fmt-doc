@@ -14,7 +14,7 @@ nav:
       - 'Balances comptables': comptabilite/balances-comptables.md
       - 'Clés de répartition': comptabilite/cles-de-repartition.md
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
-      - 'Pièces et écritures comptables': comptabilite/pieces-et-ecritures-comptables.md
+      - 'Pièces et écritures comptables': comptabilite/ecritures-comptables.mdpieces-et-ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
       - 'Lettrage des écritures': comptabilite/lettrage.md
@@ -22,6 +22,7 @@ nav:
           - 'Factures d''achat': comptabilite/pieces-comptables/facture-achat.md
           - 'Décompte copropriétaires': comptabilite/pieces-comptables/decompte-coproprietaires.md
           - 'Appels de fonds': comptabilite/pieces-comptables/appel-de-fonds.md
+          - 'Situation de compte copropriétaire': comptabilite/pieces-comptables/situation-de-compte-coproprietaire.md
   - 'Copropriété':
       - 'Création nouvelle Copropriété': copropriete/creation-nouvelle-copropriete.md
       - 'Configuration & paramétrage': copropriete/configuration.md
@@ -52,7 +53,7 @@ nav:
       - 'Signatures électroniques': documents/signatures-electroniques.md
   - 'Suivis':
       - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
-      - 'Réconciliation CODA': suivis/suivis-de-paiement/reconciliation-coda.md
+      - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
       - 'Suivis de dossiers': suivis/suivis-de-dossiers/suivis-de-dossiers.md
       - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
   - 'Infra':
