@@ -50,6 +50,8 @@ nav:
           - 'Document Validation': documents/document-processing/document-validation.md
           - 'Intégration comptable': documents/document-processing/document-integration.md
       - 'Email Digestor': documents/email-digestor/email-digestor.md
+      - 'Envoi Emails & Documents': 
+          - 'Modèles de documents & logique d''emission': documents/envoi-emails-et-documents/modeles-de-documents-et-logique-d-emission.md
       - 'Signatures électroniques': documents/signatures-electroniques.md
   - 'Suivis':
       - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
