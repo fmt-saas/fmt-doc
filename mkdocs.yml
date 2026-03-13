@@ -18,6 +18,8 @@ nav:
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
       - 'Lettrage des écritures': comptabilite/lettrage.md
+      - 'Etats comptables': 
+        - 'Balance Générale': comptabilite/etats-comptables/balance-generale.md
       - 'Encodage pièces comptables':
           - 'Factures d''achat': comptabilite/pieces-comptables/facture-achat.md
           - 'Décompte copropriétaires': comptabilite/pieces-comptables/decompte-coproprietaires.md
