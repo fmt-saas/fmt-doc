@@ -14,12 +14,13 @@ nav:
       - 'Balances comptables': comptabilite/balances-comptables.md
       - 'Clés de répartition': comptabilite/cles-de-repartition.md
       - 'Ecritures comptables': comptabilite/ecritures-comptables.md
-      - 'Pièces et écritures comptables': comptabilite/ecritures-comptables.mdpieces-et-ecritures-comptables.md
+      - 'Pièces et écritures comptables': comptabilite/pieces-et-ecritures-comptables.md
       - 'Exercices comptables': comptabilite/exercices-comptables.md
       - 'Plan comptable': comptabilite/plan-comptable.md
       - 'Lettrage des écritures': comptabilite/lettrage.md
       - 'Etats comptables': 
         - 'Balance Générale': comptabilite/etats-comptables/balance-generale.md
+        - 'Grand livre': comptabilite/etats-comptables/grand-livre.md
       - 'Encodage pièces comptables':
           - 'Factures d''achat': comptabilite/pieces-comptables/facture-achat.md
           - 'Décompte copropriétaires': comptabilite/pieces-comptables/decompte-coproprietaires.md
@@ -57,9 +58,18 @@ nav:
       - 'Signatures électroniques': documents/signatures-electroniques.md
   - 'Suivis':
       - 'Envois & Rappels': suivis/envois-et-rappels/envois-et-rappels.md
-      - 'Réconciliation CODA': suivis/reconciliation-coda/reconciliation-coda.md
       - 'Suivis de dossiers': suivis/suivis-de-dossiers/suivis-de-dossiers.md
       - 'Suivis de paiement': suivis/suivis-de-paiement/suivis-de-paiement.md
+      - 'Extraits bancaires': suivis/suivis-de-paiement/extraits-bancaires.md
+      - 'Réconciliation CODA': suivis/suivis-de-paiement/reconciliation-coda.md
+  - 'Utilisateurs':
+      - 'Copropriétaire': utilisateurs/coproprietaire.md
+      - 'Employé': utilisateurs/employe.md
+  - 'Prise en main et fonctionnement':
+      - 'Navigation':
+          - 'Adresses directes': prise-en-main-et-fonctionnement/navigation/adresses-directes.md
+      - 'Consultation et édition des informations':
+          - 'Edition de textes': prise-en-main-et-fonctionnement/consultation-et-edition-des-informations/edition-de-textes.md
   - 'Infra':
       - 'Authentification': infra/authentification.md
       - 'Synchronisation': infra/synchronisation.md      
