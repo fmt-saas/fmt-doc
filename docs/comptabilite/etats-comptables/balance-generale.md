@@ -1,130 +1,202 @@
 # Balance générale
 
-La **balance générale** est un état comptable qui présente l’ensemble des mouvements enregistrés dans les comptes d’une comptabilité sur une période donnée. Elle permet de vérifier la cohérence des écritures comptables et d’analyser les mouvements et soldes des comptes.
+La balance générale est un état comptable qui présente les mouvements et les soldes des comptes sur une période donnée. Elle permet à la fois de vérifier la cohérence des écritures et d’analyser l’évolution des comptes.
 
-Dans sa forme la plus simple, la balance liste **toutes les lignes d’écriture comptable** (`AccountingEntryLine`) enregistrées dans le système. Chaque ligne correspond à un mouvement au débit ou au crédit d’un compte comptable.
+Dans le système, la balance n’est pas une simple liste de lignes comptables :
+elle est structurée **par compte**, avec une logique de recalcul des soldes permettant de restituer fidèlement la situation comptable à n’importe quelle date.
 
-La balance générale peut être filtrée selon plusieurs critères, notamment :
 
-- une **période comptable** (date de début et date de fin),
-- un **exercice comptable** (`FiscalYear`),
-- un **journal** (`Journal`),
-- un **compte comptable** (`Account`),
-- ou encore des catégories spécifiques comme les **fournisseurs** ou les **copropriétaires**.
 
-Seules les écritures **validées** (`status = validated`) sont prises en compte, afin de garantir que la balance reflète uniquement des opérations comptables confirmées.
+## Structure de la balance
+
+La balance est organisée **compte par compte**.
+
+Pour chaque compte, elle présente :
+
+1. un **solde initial** à la date de début de la période,
+2. suivi des **écritures comptables** de la période,
+3. avec un **solde recalculé après chaque ligne**.
+
+Cela correspond à une vue proche d’un grand livre simplifié.
+
+### Exemple de structure
+
+Pour un compte donné :
+
+* Solde au 01/03/2025
+* Écriture du 05/03/2025 → nouveau solde
+* Écriture du 12/03/2025 → nouveau solde
+* …
+
+Chaque ligne contient un solde cumulatif, permettant de suivre l’évolution du compte.
+
+
 
 ## Période et exercice comptable
 
-La consultation de la balance repose principalement sur une **période définie par une date de début et une date de fin**.
+La balance repose sur une période définie par :
 
-Un **exercice comptable** peut également être sélectionné afin de faciliter la navigation dans les données. Toutefois, le calcul de la balance s’appuie **uniquement sur les dates de la période demandée**, indépendamment de l’exercice sélectionné.
+* une date de début (`date_from`)
+* une date de fin (`date_to`)
 
-L’exercice sert donc principalement :
+Un exercice comptable (`FiscalYear`) peut également être utilisé pour :
 
-- à proposer une **période par défaut**,
-- à identifier le **contexte comptable** dans lequel s’inscrit la consultation.
+* déterminer une période par défaut,
+* identifier le contexte comptable.
 
-Par défaut, l’exercice sélectionné est **l’exercice en cours**.
+Cependant :
 
-Lorsque la date de début ne correspond pas au début d’un exercice, le système détermine automatiquement le **solde initial** à partir des informations disponibles dans les périodes précédentes.
+> Le calcul de la balance dépend uniquement des dates, pas de l’exercice.
+
+Cela permet de consulter la balance sur des périodes arbitraires, y compris au milieu d’un exercice.
+
+
 
 ## Détermination des comptes inclus
 
-Afin d’obtenir une balance correcte tout en limitant le volume de données à traiter, les comptes inclus dans la balance sont déterminés à partir de plusieurs sources :
+Afin d’assurer une balance complète tout en restant performante, les comptes affichés sont déterminés dynamiquement.
 
-- les comptes présents dans les **soldes d’ouverture** (`OpeningBalanceLine`) de l’exercice,
-- les comptes ayant subi une **variation de solde** (`AccountBalanceChange`) entre le début de l’exercice et la date de début demandée,
-- les comptes présentant **au moins un mouvement comptable** (`AccountingEntryLine`) dans la période sélectionnée.
+Un compte est inclus s’il répond à au moins une des conditions suivantes :
 
-Cette approche garantit que les comptes possédant un **solde initial mais aucun mouvement dans la période** sont correctement pris en compte.
+* il possède un **solde initial non nul**,
+* il a des **écritures dans la période**,
+* il a un **historique avant la période** impactant son solde.
+
+Concrètement, cela inclut :
+
+* les comptes présents dans les soldes d’ouverture (`OpeningBalanceLine`),
+* les comptes ayant subi des variations (`AccountBalanceChange`) avant ou pendant la période,
+* les comptes ayant des écritures comptables (`AccountingEntryLine`) sur la période.
+
+Cette approche garantit que :
+
+> les comptes sans mouvement mais avec un solde existant sont bien affichés.
+
+
 
 ## Calcul du solde initial
 
-Lorsque la période consultée ne commence pas au début d’un exercice, la balance doit tenir compte des opérations enregistrées avant la période afin de déterminer le **solde initial** des comptes.
+Lorsque la période ne commence pas au début d’un exercice, le système reconstitue le solde du compte à la date de début.
 
-Ce solde est déterminé selon l’ordre de priorité suivant :
+Le calcul repose sur deux sources principales :
 
-1. le **dernier changement de solde enregistré** (`AccountBalanceChange`) avant la date de début,
-2. le **solde d’ouverture de l’exercice** (`OpeningBalanceLine`),
-3. à défaut, un **solde nul**.
+1. le solde d’ouverture de l’exercice (`OpeningBalanceLine`),
+2. les variations de solde (`AccountBalanceChange`) entre le début de l’exercice et la date demandée.
 
-Cette logique reproduit le mécanisme comptable de **report des soldes** entre périodes.
+Le principe est le suivant :
 
-Le système tient également compte du fait qu’il peut **ne pas exister d’exercice précédent**.
+* le solde d’ouverture sert de base,
+* le dernier changement de solde connu avant la date de début est appliqué,
+* ce dernier état fait foi.
 
-## Structure des données
+Ainsi :
 
-Chaque ligne de la balance correspond à une **ligne d’écriture comptable** et contient notamment les informations suivantes :
+> le solde initial correspond toujours au solde réel du compte à la date de début de la période.
 
-- **Date de l’écriture** (`entry_date`)
-  Date à laquelle l’opération est enregistrée dans la comptabilité.
 
-- **Compte comptable** (`account_id`)
-  Compte impacté par la ligne d’écriture.
 
-- **Journal** (`journal_id`)
-  Journal dans lequel l’écriture comptable a été enregistrée.
+## Calcul du solde sur la période
 
-- **Écriture comptable** (`accounting_entry_id`)
-  Référence de l’écriture dont la ligne fait partie.
+Une fois le solde initial déterminé, les écritures de la période sont appliquées chronologiquement.
 
-- **Description** (`description`)
-  Texte décrivant l’opération.
+Pour chaque ligne :
 
-- **Débit** (`debit`)
-  Montant débité sur le compte.
+* le débit augmente le solde,
+* le crédit le diminue,
+* un nouveau solde est calculé immédiatement.
 
-- **Crédit** (`credit`)
-  Montant crédité sur le compte.
+Cela produit un **solde progressif**, ligne par ligne.
 
-- **Solde de la ligne** (`balance`)
-  Différence entre le débit et le crédit :
 
-  ```
-  balance = debit − credit
-  ```
 
-Ce solde permet de déterminer l’impact de la ligne sur le compte :
+## Nature des lignes retournées
 
-- un **solde positif** correspond à un mouvement au **débit**,
-- un **solde négatif** correspond à un mouvement au **crédit**.
+Deux types de lignes coexistent dans la balance :
 
-## Objectif de la balance générale
+### 1. Ligne de solde initial
 
-La balance générale remplit plusieurs fonctions essentielles :
+* générée automatiquement (ligne virtuelle),
+* positionnée à la date de début,
+* représente l’état du compte avant toute opération de la période.
+
+### 2. Lignes d’écritures comptables
+
+* issues des `AccountingEntryLine`,
+* uniquement si l’écriture est validée (`status = validated`),
+* enrichies avec les informations liées (compte, journal, écriture).
+
+
+
+## Filtres disponibles
+
+La balance peut être filtrée selon plusieurs critères :
+
+* période (`date_from`, `date_to`)
+* exercice comptable (`FiscalYear`)
+* compte (`Account`)
+* journal (`Journal`)
+* type de compte :
+
+  * fournisseurs
+  * copropriétaires
+
+Les filtres sont appliqués :
+
+* au niveau des écritures pour les performances,
+* et au niveau des comptes pour certaines catégories métier.
+
+
+
+## Comportement fonctionnel
+
+La balance garantit les comportements suivants :
+
+* un compte avec un **solde non nul** est affiché, même sans écriture,
+* un compte avec des **écritures sur la période** est affiché, même si son solde est nul,
+* un compte ayant un **historique avant la période** est correctement valorisé.
+
+
+
+## Objectifs de la balance générale
 
 ### Vérification comptable
 
-Elle permet de vérifier que la comptabilité est équilibrée.
-Dans une comptabilité en partie double, la somme totale des débits doit être égale à la somme totale des crédits.
+La balance permet de vérifier que la comptabilité est équilibrée :
+
+* total des débits = total des crédits
 
 ### Analyse des comptes
 
-Elle permet d’analyser :
+Elle permet de :
 
-- les mouvements sur chaque compte,
-- la nature des opérations comptables,
-- les montants enregistrés sur une période donnée.
+* suivre les mouvements par compte,
+* analyser les opérations,
+* comprendre l’évolution des soldes.
 
-### Base de production des états comptables
+### Base des états comptables
 
-La balance constitue également la **base de travail pour produire les états financiers**, notamment :
+Elle sert de fondation pour :
 
-- le **grand livre**,
-- le **bilan**,
-- le **compte de résultats**,
-- ou encore les **décomptes analytiques** dans certains contextes (par exemple en copropriété).
+* le grand livre,
+* le bilan,
+* le compte de résultats,
+* les décomptes analytiques (ex. copropriété).
 
-## Balance détaillée et balance agrégée
 
-La présentation de la balance peut être soit **détaillée**, c’est-à-dire une liste de toutes les lignes d’écriture.
 
-soit **agrégée par compte**, en calculant :
+## Remarques techniques
 
-- le total des débits par compte,
-- le total des crédits par compte,
-- le solde du compte.
+La balance est construite selon une logique **centrée sur les comptes**, et non sur les lignes.
 
-Dans la version détaillée, les lignes sont généralement **triées par compte, puis par date d’écriture**, afin de faciliter la lecture des mouvements comptables et l’analyse chronologique des opérations.
+Cela signifie que :
+
+* chaque compte est traité indépendamment,
+* le solde est recalculé dynamiquement,
+* les données sont optimisées pour limiter les volumes tout en garantissant l’exactitude.
+
+Cette approche permet de concilier :
+
+* performance,
+* précision comptable,
+* flexibilité d’analyse.
 
