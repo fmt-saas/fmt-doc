@@ -1,0 +1,6 @@
+sources:
+  - name: FMT
+    repo: https://github.com/fmt-saas/fmt.git
+    branch: main
+    path: DOC
+    target: .
